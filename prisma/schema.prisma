@@ -1,15 +1,141 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// prisma/schema.prisma
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+enum ExternalProvider {
+  Deezer
+  Spotify
+}
+
+enum FollowTargetType {
+  usuario
+  artista
+}
+
+model User {
+  id             Int              @id @default(autoincrement())
+  name           String
+  email          String           @unique
+  password       String
+  profilePicture String?          @map("profile_picture")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt   @map("updated_at")
+
+  reviews        Review[]
+  favorites      Favorite[]
+  playlists      Playlist[]
+  searchHistory  SearchHistory[]
+  follows        Follow[]         @relation("UserFollows")
+
+  @@map("users")
+}
+
+model Track {
+  id               Int               @id @default(autoincrement())
+  externalId       String            @map("external_id")
+  title            String
+  artist           String?
+  album            String?
+  coverUrl         String?           @map("cover_url")
+  externalProvider ExternalProvider  @default(Spotify) @map("external_provider")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt   @map("updated_at")
+
+  reviews          Review[]
+  favorites        Favorite[]
+  playlistTracks   PlaylistTrack[]
+
+  @@unique([externalId, externalProvider], name: "uk_track_provider")
+  @@map("tracks")
+}
+
+model Artist {
+  id               Int               @id @default(autoincrement())
+  externalId       String            @map("external_id")
+  name             String
+  pictureUrl       String?           @map("picture_url")
+  externalProvider ExternalProvider  @default(Spotify) @map("external_provider")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt   @map("updated_at")
+
+  @@unique([externalId, externalProvider], name: "uk_artist_provider")
+  @@map("artists")
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int      @map("user_id")
+  track     Track    @relation(fields: [trackId], references: [id])
+  trackId   Int      @map("track_id")
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt   @map("updated_at")
+
+  @@map("reviews")
+}
+
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int      @map("user_id")
+  track     Track    @relation(fields: [trackId], references: [id])
+  trackId   Int      @map("track_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, trackId], name: "uk_user_track")
+  @@map("favorites")
+}
+
+model Playlist {
+  id             Int              @id @default(autoincrement())
+  user           User             @relation(fields: [userId], references: [id])
+  userId         Int              @map("user_id")
+  name           String
+  description    String?
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt   @map("updated_at")
+
+  playlistTracks PlaylistTrack[]
+  @@map("playlists")
+}
+
+model PlaylistTrack {
+  playlist   Playlist @relation(fields: [playlistId], references: [id])
+  playlistId Int      @map("playlist_id")
+  track      Track    @relation(fields: [trackId], references: [id])
+  trackId    Int      @map("track_id")
+  position   Int?
+
+  @@id([playlistId, trackId])
+  @@map("playlist_tracks")
+}
+
+model SearchHistory {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int      @map("user_id")
+  query     String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("search_history")
+}
+
+model Follow {
+  id         Int              @id @default(autoincrement())
+  follower   User             @relation("UserFollows", fields: [followerId], references: [id])
+  followerId Int              @map("follower_id")
+  targetType FollowTargetType @map("target_type")
+  targetId   Int              @map("target_id")
+  createdAt  DateTime         @default(now()) @map("created_at")
+
+  @@map("follows")
 }
