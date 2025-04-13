@@ -1,0 +1,67 @@
+# .github/workflows/deploy.yml
+name: CI/CD Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: 'deploy-VorPlay'
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Deploy to Contabo VPS
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -e
+
+            # 1) Certifica-se de que o git está instalado
+            if ! command -v git &> /dev/null; then
+              apt-get update
+              apt-get install -y git
+            fi
+
+            # 2) Clona ou atualiza o diretório do projeto
+            if [ ! -d /www/wwwroot/VorPlay ]; then
+              git clone git@github.com:${{ github.repository }}.git /www/wwwroot/VorPlay
+            fi
+
+            cd /www/wwwroot/VorPlay
+
+            # 3) Garante que estamos na última versão
+            git fetch origin main
+            git reset --hard origin/main
+
+            # 4) Instala dependências e build
+            npm ci
+            npm run build
+
+            # 5) Reinicia (ou inicia) o PM2
+            pm2 restart VorPlay || pm2 start dist/main.js --name VorPlay
