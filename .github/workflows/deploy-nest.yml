@@ -20,6 +20,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
+
       - run: |
           npm ci
           npm run build
@@ -28,22 +29,24 @@ jobs:
       - name: Install sshpass
         run: sudo apt-get update && sudo apt-get install -y sshpass
 
-      # 3) Copia o build para o servidor
+      # 3) Copia o build e arquivos necessários para o servidor
       - name: Copy build to server
         run: |
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
             scp -o StrictHostKeyChecking=no -r \
-            dist package.json package-lock.json \
+            dist prisma package.json package-lock.json \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/VorPlay
 
-      # 4) Comandos de deploy remoto
+      # 4) Roda o deploy remoto no servidor
       - name: Remote deploy commands
         run: |
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
             "set -e && \
             cd /www/wwwroot/VorPlay && \
-            echo '--- Instalando deps em produção ---' && \
-            npm ci --production && \
+            echo '--- Instalando dependências ---' && \
+            npm install && \
+            echo '--- Gerando Prisma Client ---' && \
+            npx prisma generate && \
             echo '--- Reiniciando PM2 ---' && \
             pm2 restart VorPlay || pm2 start dist/main.js --name VorPlay"
