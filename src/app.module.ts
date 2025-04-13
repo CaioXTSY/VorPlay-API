@@ -8,6 +8,8 @@ import { PlaylistsModule } from './playlists/playlists.module';
 import { PlaylistTracksModule } from './playlistTracks/playlist-tracks.module';
 import { SearchHistoryModule } from './searchHistory/search-history.module';
 import { FollowsModule } from './follows/follows.module';
+import { AuthModule } from './auth/auth.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
@@ -20,6 +22,9 @@ import { FollowsModule } from './follows/follows.module';
     PlaylistTracksModule,
     SearchHistoryModule,
     FollowsModule,
+    PrismaModule,
+    UsersModule,
+    AuthModule,
   ],
 })
 export class AppModule {}
