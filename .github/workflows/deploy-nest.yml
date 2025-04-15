@@ -13,17 +13,18 @@ jobs:
 
     steps:
       # 1) Checkout do código
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       # 2) Setup Node.js e cache npm
-      - name: Setup Node.js & cache npm
+      - name: Setup Node.js & Cache npm
         uses: actions/setup-node@v3
         with:
           node-version: '18'
           cache: 'npm'
 
       # 3) Instala dependências e build local
-      - name: Install dependencies & build
+      - name: Install dependencies & Build
         run: |
           npm ci
           npm run build
@@ -32,14 +33,15 @@ jobs:
       - name: Install sshpass
         run: sudo apt-get update && sudo apt-get install -y sshpass
 
-      # 5) Limpa tudo em /www/wwwroot/VorPlay, preservando apenas .env
+      # 5) Limpa tudo no servidor, preservando apenas .env
       - name: Clean remote directory (keep .env)
         run: |
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
-            'bash -lc "cd /www/wwwroot/VorPlay && shopt -s extglob && rm -rf !(.env)"'
+            "cd /www/wwwroot/VorPlay && \
+             find . -mindepth 1 -maxdepth 1 ! -name '.env' -exec rm -rf {} +"
 
-      # 6) Copia dist, prisma, package.json e package-lock.json
+      # 6) Copia build e arquivos de configuração para o servidor
       - name: Copy build & config to server
         run: |
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
@@ -52,19 +54,18 @@ jobs:
         run: |
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
-            'bash -lc "set -e && \
-             cd /www/wwwroot/VorPlay && \
-             echo \"--- Instalando dependências de produção ---\" && \
+            "cd /www/wwwroot/VorPlay && \
+             echo '--- Instalando dependências de produção ---' && \
              npm ci --production && \
-             echo \"--- Gerando Prisma Client ---\" && \
+             echo '--- Gerando Prisma Client ---' && \
              npx prisma generate && \
-             echo \"--- Aplicando migrations (se existirem) ---\" && \
-             if [ -d prisma/migrations ] && [ \"$(ls -A prisma/migrations)\" ]; then \
-               npx prisma migrate deploy || echo \"⚠️ Sem novas migrations\"; \
+             echo '--- Aplicando migrations (se existirem) ---' && \
+             if [ -d prisma/migrations ] && [ \"\$(ls -A prisma/migrations)\" ]; then \
+               npx prisma migrate deploy || echo '⚠️ Sem novas migrations'; \
              else \
-               echo \"ℹ️ Pulando migrations\"; \
+               echo 'ℹ️ Pulando migrations'; \
              fi && \
-             echo \"--- Reiniciando PM2 ---\" && \
+             echo '--- Reiniciando PM2 ---' && \
              pm2 delete VorPlay || true && \
              pm2 start dist/main.js --name VorPlay -f && \
-             echo \"✅ Deploy concluído\""' 
+             echo '✅ Deploy concluído com sucesso'"
