@@ -7,11 +7,9 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // 1) Prefixo global versionado
   app.setGlobalPrefix('api/v1');
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
-  // 2) Configuração do Swagger
   const swaggerConfig = new DocumentBuilder()
     .setTitle('VorPlay API')
     .setDescription('Documentação da API do VorPlay')
@@ -19,12 +17,10 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
 
-  // 3) Gera o documento incluindo o prefixo global nas paths
   const document = SwaggerModule.createDocument(app, swaggerConfig, {
     ignoreGlobalPrefix: false,
   });
 
-  // 4) Expondo o Swagger em /api/v1/docs
   SwaggerModule.setup('api/v1/docs', app, document);
 
   app.enableCors();

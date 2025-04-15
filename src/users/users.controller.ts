@@ -9,7 +9,6 @@ import { UpdateUserDto } from "./dto/update-user.dto";
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // Move the 'me' routes before the ':id' route
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Retornar o perfil do usuário logado' })
@@ -36,8 +35,7 @@ export class UsersController {
   removeProfile(@Request() req) {
     return this.usersService.remove(req.user.userId);
   }
-
-  // Then put the more generic routes
+  
   @ApiOperation({ summary: 'Listar todos os usuários' })
   @ApiResponse({ status: 200, description: 'Lista de usuários' })
   @Get()
