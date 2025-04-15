@@ -12,44 +12,46 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1) Checkout do código e build da aplicação
+      # 1) Checkout do código
       - uses: actions/checkout@v3
 
-      - name: Setup Node.js & Build
+      # 2) Setup Node.js e cache do npm
+      - name: Setup Node.js & Cache npm
         uses: actions/setup-node@v3
         with:
           node-version: '18'
           cache: 'npm'
 
-      - name: Install dependencies and build
+      # 3) Instala dependências e faz o build
+      - name: Install dependencies & Build
         run: |
           npm ci
           npm run build
 
-      # 2) Instalação do sshpass (necessário para transferência via SCP)
+      # 4) Instala sshpass
       - name: Install sshpass
         run: sudo apt-get update && sudo apt-get install -y sshpass
 
-      # 3) Cópia dos arquivos para o servidor (incluindo o .env manualmente)
-      - name: Copy build to server
+      # 5) Copia apenas o build e arquivos necessários (sem o .env)
+      - name: Copy files to server
         run: |
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
             scp -o StrictHostKeyChecking=no -r \
-            dist prisma package.json package-lock.json .env \
+            dist prisma package.json package-lock.json \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/VorPlay
 
-      # 4) Executa os comandos de deploy no servidor remoto
+      # 6) Executa o deploy remoto
       - name: Remote deploy commands
         run: |
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
             "set -e && \
-            cd /www/wwwroot/VorPlay && \
-            echo '--- Instalando dependências de produção ---' && \
-            npm ci --production && \
-            echo '--- Gerando Prisma Client ---' && \
-            npx prisma generate && \
-            echo '--- Aplicando migrações do Prisma ---' && \
-            npx prisma migrate deploy && \
-            echo '--- Reiniciando PM2 ---' && \
-            pm2 restart VorPlay || pm2 start dist/main.js --name VorPlay"
+             cd /www/wwwroot/VorPlay && \
+             echo '--- Instalando dependências de produção ---' && \
+             npm ci --production && \
+             echo '--- Gerando Prisma Client ---' && \
+             npx prisma generate && \
+             echo '--- Aplicando migrações do Prisma ---' && \
+             npx prisma migrate deploy && \
+             echo '--- Reiniciando PM2 ---' && \
+             pm2 restart VorPlay || pm2 start dist/main.js --name VorPlay"
