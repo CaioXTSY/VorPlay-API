@@ -41,12 +41,18 @@ jobs:
             "cd /www/wwwroot/VorPlay && \
              find . -mindepth 1 -maxdepth 1 ! -name '.env' -exec rm -rf {} +"
 
-      # 6) Copia build e arquivos de configuração para o servidor
+      # 6) Copia a pasta dist inteira (cria /VorPlay/dist) e arquivos de configuração
       - name: Copy build & config to server
         run: |
+          # copia dist/ para o servidor, recriando /VorPlay/dist
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
             scp -o StrictHostKeyChecking=no -r \
-            dist/* prisma package.json package-lock.json \
+            dist \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/VorPlay
+          # copia prisma e package files
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
+            scp -o StrictHostKeyChecking=no -r \
+            prisma package.json package-lock.json \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/VorPlay
 
       # 7) Executa deploy remoto: install, prisma, pm2
