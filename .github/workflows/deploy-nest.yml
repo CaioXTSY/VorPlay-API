@@ -1,4 +1,3 @@
-# .github/workflows/deploy.yml
 name: Simple Deploy via sshpass
 
 on:
@@ -13,40 +12,42 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1) Checkout + build
-      - uses: actions/checkout@v3
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-      - name: Setup Node.js & Build
+      - name: Setup Node.js & Cache npm
         uses: actions/setup-node@v3
         with:
           node-version: '18'
+          cache: 'npm'
 
-      - run: |
+      - name: Install Dependencies and Build
+        run: |
           npm ci
           npm run build
 
-      # 2) Instala sshpass
       - name: Install sshpass
-        run: sudo apt-get update && sudo apt-get install -y sshpass
+        run: |
+          sudo apt-get update && sudo apt-get install -y sshpass
 
-      # 3) Copia o build e arquivos necessários para o servidor
-      - name: Copy build to server
+      - name: Copy build and necessary files to server
         run: |
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
             scp -o StrictHostKeyChecking=no -r \
-            dist prisma package.json package-lock.json \
+            dist prisma package.json package-lock.json .env \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/VorPlay
 
-      # 4) Roda o deploy remoto no servidor
-      - name: Remote deploy commands
+      - name: Remote Deploy Commands
         run: |
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
             "set -e && \
             cd /www/wwwroot/VorPlay && \
-            echo '--- Instalando dependências ---' && \
-            npm install && \
+            echo '--- Instalando dependências de produção ---' && \
+            npm ci --production && \
             echo '--- Gerando Prisma Client ---' && \
             npx prisma generate && \
+            echo '--- Aplicando migrações Prisma ---' && \
+            npx prisma migrate deploy && \
             echo '--- Reiniciando PM2 ---' && \
             pm2 restart VorPlay || pm2 start dist/main.js --name VorPlay"
