@@ -1,3 +1,4 @@
+# .github/workflows/deploy.yml
 name: Simple Deploy via sshpass
 
 on:
@@ -12,29 +13,51 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      # 1) Checkout do código
+      - name: Checkout code
+        uses: actions/checkout@v3
 
+      # 2) Setup Node.js e cache npm
       - name: Setup Node.js & Cache npm
         uses: actions/setup-node@v3
         with:
           node-version: '18'
           cache: 'npm'
 
+      # 3) Instala dependências e build
       - name: Install dependencies & Build
         run: |
           npm ci
           npm run build
 
+      # 4) Instala sshpass
       - name: Install sshpass
         run: sudo apt-get update && sudo apt-get install -y sshpass
 
-      - name: Copy files to server
+      # 5) Limpa dist remoto e recria pasta
+      - name: Clean remote dist directory
+        run: |
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
+            "rm -rf /www/wwwroot/VorPlay/dist && mkdir -p /www/wwwroot/VorPlay/dist"
+
+      # 6) Copia apenas o conteúdo de dist para o servidor
+      - name: Copy dist to server
         run: |
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
             scp -o StrictHostKeyChecking=no -r \
-            dist prisma package.json package-lock.json \
+            dist/* \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/VorPlay/dist
+
+      # 7) Copia prisma, package.json e package-lock.json para o servidor
+      - name: Copy config files to server
+        run: |
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
+            scp -o StrictHostKeyChecking=no -r \
+            prisma package.json package-lock.json \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/VorPlay
 
+      # 8) Executa deploy remoto com tratamento de erros
       - name: Remote deploy commands
         run: |
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no \
@@ -51,6 +74,8 @@ jobs:
              else \
                echo 'ℹ️ Diretório prisma/migrations vazio ou ausente, pulando migrate deploy'; \
              fi && \
-             echo '--- Reiniciando processo PM2 ---' && \
-             pm2 restart VorPlay || pm2 start dist/main.js --name VorPlay -f && \
+             echo '--- Parando processo PM2 antigo (se existir) ---' && \
+             pm2 delete VorPlay || true && \
+             echo '--- Iniciando processo PM2 ---' && \
+             pm2 start dist/main.js --name VorPlay -f && \
              echo '✅ Deploy concluído com sucesso'"
