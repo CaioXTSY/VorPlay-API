@@ -7,7 +7,9 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions/all-excepti
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.setGlobalPrefix('api');
+  // Prefixo único: api/v1
+  app.setGlobalPrefix('api/v1');
+
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.useGlobalFilters(new AllExceptionsFilter());
 
@@ -16,7 +18,7 @@ async function bootstrap() {
     .setDescription('Documentação da API do VorPlay')
     .setVersion('1.0')
     .addBearerAuth()
-    .addServer('/api')        
+    .addServer('/api/v1')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
