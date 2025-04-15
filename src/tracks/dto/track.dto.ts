@@ -70,9 +70,12 @@ export class TrackDto {
   @ApiProperty({ required: false })
   previewUrl: string;
 
-  @ApiProperty()
-  embedUrl: string;
+  @ApiProperty({ description: 'Link embed para incorporar o player do Spotify' })
+  embed: string;
 
   @ApiProperty()
   href: string;
+
+  @ApiProperty({ type: [String], description: 'Lista dos gêneros associados aos artistas da faixa' })
+  genres: string[];
 }

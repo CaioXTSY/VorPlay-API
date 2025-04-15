@@ -56,4 +56,13 @@ export class SpotifyService {
     );
     return response.data;
   }
+
+  async getArtist(id: string): Promise<any> {
+    const token = await this.getToken();
+    const url = `${process.env.SPOTIFY_API_URL}/artists/${id}`;
+    const response = await firstValueFrom(
+      this.http.get(url, { headers: { Authorization: `Bearer ${token}` } }),
+    );
+    return response.data;
+  }
 }
