@@ -1,5 +1,4 @@
-# .github/workflows/deploy.yml
-name: Simple Deploy via sshpass
+name: Full clean & deploy via sshpass
 
 on:
   push:
@@ -14,18 +13,17 @@ jobs:
 
     steps:
       # 1) Checkout do código
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       # 2) Setup Node.js e cache npm
-      - name: Setup Node.js & Cache npm
+      - name: Setup Node.js & cache npm
         uses: actions/setup-node@v3
         with:
           node-version: '18'
           cache: 'npm'
 
-      # 3) Instala dependências e build
-      - name: Install dependencies & Build
+      # 3) Instala dependências e build local
+      - name: Install dependencies & build
         run: |
           npm ci
           npm run build
@@ -34,48 +32,39 @@ jobs:
       - name: Install sshpass
         run: sudo apt-get update && sudo apt-get install -y sshpass
 
-      # 5) Limpa dist remoto e recria pasta
-      - name: Clean remote dist directory
+      # 5) Limpa tudo em /www/wwwroot/VorPlay, preservando apenas .env
+      - name: Clean remote directory (keep .env)
         run: |
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
-            "rm -rf /www/wwwroot/VorPlay/dist && mkdir -p /www/wwwroot/VorPlay/dist"
+            'bash -lc "cd /www/wwwroot/VorPlay && shopt -s extglob && rm -rf !(.env)"'
 
-      # 6) Copia apenas o conteúdo de dist para o servidor
-      - name: Copy dist to server
+      # 6) Copia dist, prisma, package.json e package-lock.json
+      - name: Copy build & config to server
         run: |
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
             scp -o StrictHostKeyChecking=no -r \
-            dist/* \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/VorPlay/dist
-
-      # 7) Copia prisma, package.json e package-lock.json para o servidor
-      - name: Copy config files to server
-        run: |
-          sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
-            scp -o StrictHostKeyChecking=no -r \
-            prisma package.json package-lock.json \
+            dist/* prisma package.json package-lock.json \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/VorPlay
 
-      # 8) Executa deploy remoto com tratamento de erros
+      # 7) Executa deploy remoto: install, prisma, pm2
       - name: Remote deploy commands
         run: |
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
-            "set -e && \
+            'bash -lc "set -e && \
              cd /www/wwwroot/VorPlay && \
-             echo '--- Instalando dependências de produção ---' && \
+             echo \"--- Instalando dependências de produção ---\" && \
              npm ci --production && \
-             echo '--- Gerando Prisma Client ---' && \
+             echo \"--- Gerando Prisma Client ---\" && \
              npx prisma generate && \
-             echo '--- Aplicando migrações do Prisma (se existirem) ---' && \
-             if [ -d prisma/migrations ] && [ \"\$(ls -A prisma/migrations)\" ]; then \
-               npx prisma migrate deploy || echo '⚠️ Sem novas migrações para aplicar'; \
+             echo \"--- Aplicando migrations (se existirem) ---\" && \
+             if [ -d prisma/migrations ] && [ \"$(ls -A prisma/migrations)\" ]; then \
+               npx prisma migrate deploy || echo \"⚠️ Sem novas migrations\"; \
              else \
-               echo 'ℹ️ Diretório prisma/migrations vazio ou ausente, pulando migrate deploy'; \
+               echo \"ℹ️ Pulando migrations\"; \
              fi && \
-             echo '--- Parando processo PM2 antigo (se existir) ---' && \
+             echo \"--- Reiniciando PM2 ---\" && \
              pm2 delete VorPlay || true && \
-             echo '--- Iniciando processo PM2 ---' && \
              pm2 start dist/main.js --name VorPlay -f && \
-             echo '✅ Deploy concluído com sucesso'"
+             echo \"✅ Deploy concluído\""' 
