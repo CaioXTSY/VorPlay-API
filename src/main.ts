@@ -4,7 +4,6 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { AllExceptionsFilter } from './common/filters/all-exceptions/all-exceptions.filter';
 
-
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
@@ -17,9 +16,11 @@ async function bootstrap() {
     .setDescription('Documentação da API do VorPlay')
     .setVersion('1.0')
     .addBearerAuth()
+    .addServer('/api')        
     .build();
+
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
+  SwaggerModule.setup('api/v1/docs', app, document);
 
   await app.listen(3000, '0.0.0.0');
   console.log(`Application is running on: ${await app.getUrl()}`);
