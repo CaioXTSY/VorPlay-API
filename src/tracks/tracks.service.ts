@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { SpotifyService } from 'src/integration/spotify.service';
 import { TrackSummaryDto } from './dto/track-summary.dto';
 import { TrackDetailDto } from './dto/track-detail.dto';
-import { SpotifyService } from 'src/integration/spotify.service';
+import { AlbumTrackDto } from './dto/album-track.dto';
 
 @Injectable()
 export class TracksService {
@@ -26,13 +27,10 @@ export class TracksService {
     } catch {
       throw new NotFoundException(`Faixa ${id} não encontrada.`);
     }
-
-    // busca gêneros
     const genresArrays = await Promise.all(
-      item.artists.map(a => this.spotify.getArtist(a.id).then(d => d.genres || []))
+      item.artists.map(a => this.spotify.getArtist(a.id).then(d => d.genres || [])),
     );
     const genres = Array.from(new Set(genresArrays.flat()));
-
     return {
       id: item.id,
       title: item.name,
@@ -58,5 +56,37 @@ export class TracksService {
       embed: `https://open.spotify.com/embed/track/${item.id}`,
       href: item.href,
     };
+  }
+
+  /** Novo: faixas de um álbum com detalhes de álbum e artistas */
+  async findByAlbum(albumId: string): Promise<AlbumTrackDto[]> {
+    // busca metadados do álbum
+    let album: any;
+    try {
+      album = await this.spotify.getAlbum(albumId);
+    } catch {
+      throw new NotFoundException(`Álbum ${albumId} não encontrado.`);
+    }
+
+    // busca faixas
+    const items = await this.spotify.getAlbumTracks(albumId);
+
+    return items.map(track => ({
+      id: track.id,
+      title: track.name,
+      trackNumber: track.track_number,
+      durationMs: track.duration_ms,
+      artists: track.artists.map(a => ({
+        id: a.id,
+        name: a.name,
+        externalUrl: a.external_urls.spotify,
+      })),
+      album: {
+        id: album.id,
+        name: album.name,
+        coverUrl: album.images[0]?.url,
+        releaseDate: album.release_date,
+      },
+    }));
   }
 }
