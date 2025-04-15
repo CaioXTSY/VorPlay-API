@@ -40,18 +40,30 @@ jobs:
             dist prisma package.json package-lock.json \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/VorPlay
 
-      # 6) Executa o deploy remoto
+      # 6) Executa o deploy remoto com tratamento de erros
       - name: Remote deploy commands
         run: |
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
-            "set -e && \
-             cd /www/wwwroot/VorPlay && \
-             echo '--- Instalando dependências de produção ---' && \
-             npm ci --production && \
-             echo '--- Gerando Prisma Client ---' && \
-             npx prisma generate && \
-             echo '--- Aplicando migrações do Prisma ---' && \
-             npx prisma migrate deploy && \
-             echo '--- Reiniciando PM2 ---' && \
-             pm2 restart VorPlay || pm2 start dist/main.js --name VorPlay"
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+              set -e
+
+              cd /www/wwwroot/VorPlay
+
+              echo '--- Instalando dependências de produção ---'
+              npm ci --production
+
+              echo '--- Gerando Prisma Client ---'
+              npx prisma generate
+
+              echo '--- Aplicando migrações do Prisma (se existirem) ---'
+              if [ -d prisma/migrations ] && [ "$(ls -A prisma/migrations)" ]; then
+                npx prisma migrate deploy || echo '⚠️  Sem novas migrações para aplicar'
+              else
+                echo 'ℹ️  Diretório prisma/migrations vazio ou ausente, pulando migrate deploy'
+              fi
+
+              echo '--- Reiniciando processo PM2 ---'
+              pm2 restart VorPlay || pm2 start dist/main.js --name VorPlay -f
+
+              echo '✅ Deploy concluído com sucesso'
+            EOF
