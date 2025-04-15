@@ -1,21 +1,21 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class TrackSummaryDto {
-  @ApiProperty()
+  @ApiProperty({ example: '6J3l2JHhJ4z3gJvS7rQKZk' })
   id: string;
 
-  @ApiProperty()
+  @ApiProperty({ example: 'Blinding Lights' })
   title: string;
 
-  @ApiProperty({ type: [String], description: 'Nomes dos artistas' })
+  @ApiProperty({ example: ['The Weeknd'] })
   artistNames: string[];
 
-  @ApiProperty({ description: 'Nome do álbum' })
+  @ApiProperty({ example: 'After Hours' })
   albumName: string;
 
-  @ApiProperty({ description: 'Duração em milissegundos' })
+  @ApiProperty({ example: 200040, description: 'Duração em milissegundos' })
   durationMs: number;
 
-  @ApiProperty()
+  @ApiProperty({ example: 'https://api.spotify.com/v1/tracks/6J3l2JHhJ4z3gJvS7rQKZk' })
   href: string;
 }
