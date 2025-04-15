@@ -1,24 +1,78 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class TrackDto {
-  @ApiProperty({ example: 3135556, description: 'ID da faixa no provedor externo' })
-  id: number;
+export class ArtistDto {
+  @ApiProperty()
+  id: string;
 
-  @ApiProperty({ example: 'Xinoen', description: 'Título da faixa' })
+  @ApiProperty()
+  name: string;
+
+  @ApiProperty({ required: false })
+  externalUrl?: string;
+
+  @ApiProperty()
+  href: string;
+}
+
+export class AlbumImageDto {
+  @ApiProperty()
+  url: string;
+
+  @ApiProperty()
+  width: number;
+
+  @ApiProperty()
+  height: number;
+}
+
+export class AlbumDto {
+  @ApiProperty()
+  id: string;
+
+  @ApiProperty()
+  name: string;
+
+  @ApiProperty({ description: 'Data de lançamento do álbum' })
+  releaseDate: string;
+
+  @ApiProperty({ description: 'Número total de faixas do álbum' })
+  totalTracks: number;
+
+  @ApiProperty({ type: [AlbumImageDto] })
+  images: AlbumImageDto[];
+
+  @ApiProperty()
+  href: string;
+}
+
+export class TrackDto {
+  @ApiProperty()
+  id: string;
+
+  @ApiProperty()
   title: string;
 
-  @ApiProperty({ example: 'Extasy', description: 'Nome do artista' })
-  artist: string;
+  @ApiProperty({ type: [ArtistDto] })
+  artists: ArtistDto[];
 
-  @ApiProperty({ example: 'Enhanted Spells', description: 'Nome do álbum' })
-  album: string;
+  @ApiProperty({ type: AlbumDto })
+  album: AlbumDto;
 
-  @ApiProperty({ example: 243, description: 'Duração da faixa em segundos' })
-  duration: number;
+  @ApiProperty({ description: 'Duração em milissegundos' })
+  durationMs: number;
 
-  @ApiProperty({ example: 'https://cdn.deezer.com/images/cover/..../250x250-000000-80-0-0.jpg', description: 'URL da capa da música' })
-  coverUrl: string;
+  @ApiProperty()
+  explicit: boolean;
 
-  @ApiProperty({ example: 'https://www.deezer.com/track/3135556', description: 'URL de embed ou link da faixa' })
+  @ApiProperty({ description: 'Popularidade da faixa (0-100)' })
+  popularity: number;
+
+  @ApiProperty({ required: false })
+  previewUrl: string;
+
+  @ApiProperty()
   embedUrl: string;
+
+  @ApiProperty()
+  href: string;
 }
