@@ -12,32 +12,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      # 1) Checkout do código e build da aplicação
+      - uses: actions/checkout@v3
 
-      - name: Setup Node.js & Cache npm
+      - name: Setup Node.js & Build
         uses: actions/setup-node@v3
         with:
           node-version: '18'
           cache: 'npm'
 
-      - name: Install Dependencies and Build
+      - name: Install dependencies and build
         run: |
           npm ci
           npm run build
 
+      # 2) Instalação do sshpass (necessário para transferência via SCP)
       - name: Install sshpass
-        run: |
-          sudo apt-get update && sudo apt-get install -y sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
 
-      - name: Copy build and necessary files to server
+      # 3) Cópia dos arquivos para o servidor (incluindo o .env manualmente)
+      - name: Copy build to server
         run: |
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
             scp -o StrictHostKeyChecking=no -r \
             dist prisma package.json package-lock.json .env \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/VorPlay
 
-      - name: Remote Deploy Commands
+      # 4) Executa os comandos de deploy no servidor remoto
+      - name: Remote deploy commands
         run: |
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
@@ -47,7 +49,7 @@ jobs:
             npm ci --production && \
             echo '--- Gerando Prisma Client ---' && \
             npx prisma generate && \
-            echo '--- Aplicando migrações Prisma ---' && \
+            echo '--- Aplicando migrações do Prisma ---' && \
             npx prisma migrate deploy && \
             echo '--- Reiniciando PM2 ---' && \
             pm2 restart VorPlay || pm2 start dist/main.js --name VorPlay"
