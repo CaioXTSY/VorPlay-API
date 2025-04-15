@@ -1,4 +1,7 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { HttpModule } from '@nestjs/axios';
+
 import { UsersModule } from './users/users.module';
 import { TracksModule } from './tracks/tracks.module';
 import { ArtistsModule } from './artists/artists.module';
@@ -10,9 +13,12 @@ import { SearchHistoryModule } from './searchHistory/search-history.module';
 import { FollowsModule } from './follows/follows.module';
 import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { SpotifyModule } from './integration/spotify.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    HttpModule,     
     UsersModule,
     TracksModule,
     ArtistsModule,
@@ -22,9 +28,9 @@ import { PrismaModule } from './prisma/prisma.module';
     PlaylistTracksModule,
     SearchHistoryModule,
     FollowsModule,
-    PrismaModule,
-    UsersModule,
     AuthModule,
+    PrismaModule,
+    SpotifyModule,
   ],
 })
 export class AppModule {}

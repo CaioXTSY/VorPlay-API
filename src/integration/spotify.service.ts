@@ -1,4 +1,5 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { URLSearchParams } from 'url';
@@ -7,62 +8,88 @@ import { URLSearchParams } from 'url';
 export class SpotifyService {
   private token: string;
 
-  constructor(private http: HttpService) {}
+  constructor(
+    private readonly http: HttpService,
+    private readonly config: ConfigService,
+  ) {}
 
   private async getToken(): Promise<string> {
     if (this.token) return this.token;
 
-    const creds = Buffer.from(
-      `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`,
-    ).toString('base64');
+    const clientId = this.config.get<string>('SPOTIFY_CLIENT_ID');
+    const clientSecret = this.config.get<string>('SPOTIFY_CLIENT_SECRET');
+    const tokenUrl = this.config.get<string>('SPOTIFY_TOKEN_URL');
 
-    const params = new URLSearchParams({ grant_type: 'client_credentials' });
-
-    if (!process.env.SPOTIFY_TOKEN_URL) {
+    if (!clientId || !clientSecret || !tokenUrl) {
       throw new InternalServerErrorException(
-        'SPOTIFY_TOKEN_URL environment variable is not defined',
+        'Variáveis SPOTIFY_CLIENT_ID / SPOTIFY_CLIENT_SECRET / SPOTIFY_TOKEN_URL não configuradas',
       );
     }
 
-    const response = await firstValueFrom(
-      this.http.post(process.env.SPOTIFY_TOKEN_URL, params.toString(), {
+    const creds = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+    const params = new URLSearchParams({ grant_type: 'client_credentials' });
+
+    const resp = await firstValueFrom(
+      this.http.post(tokenUrl, params.toString(), {
         headers: {
           Authorization: `Basic ${creds}`,
           'Content-Type': 'application/x-www-form-urlencoded',
         },
       }),
-    );
+    ).catch(err => {
+      throw new InternalServerErrorException(
+        `Erro ao obter token Spotify: ${err.response?.data?.error_description || err.message}`,
+      );
+    });
 
-    this.token = response.data.access_token;
+    this.token = resp.data.access_token;
     return this.token;
   }
 
-  async search(query: string): Promise<any[]> {
+  /** Busca uma lista de faixas */
+  async searchTracks(query: string, limit = 10): Promise<any[]> {
     const token = await this.getToken();
-    const url = `${process.env.SPOTIFY_API_URL}/search?q=${encodeURIComponent(
-      query,
-    )}&type=track`;
-    const response = await firstValueFrom(
-      this.http.get(url, { headers: { Authorization: `Bearer ${token}` } }),
+    const apiUrl = this.config.get<string>('SPOTIFY_API_URL');
+    const resp = await firstValueFrom(
+      this.http.get(`${apiUrl}/search`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { q: query, type: 'track', limit },
+      }),
     );
-    return response.data.tracks.items;
+    return resp.data.tracks.items;
   }
 
+  /** Busca detalhes de UMA faixa, incluindo mercado (default 'US') */
   async getTrack(id: string): Promise<any> {
     const token = await this.getToken();
-    const url = `${process.env.SPOTIFY_API_URL}/tracks/${id}`;
-    const response = await firstValueFrom(
-      this.http.get(url, { headers: { Authorization: `Bearer ${token}` } }),
-    );
-    return response.data;
+    const apiUrl = this.config.get<string>('SPOTIFY_API_URL');
+    const market = this.config.get<string>('SPOTIFY_MARKET') || 'US';
+
+    const resp = await firstValueFrom(
+      this.http.get(`${apiUrl}/tracks/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { market },
+      }),
+    ).catch(err => {
+      if (err.response?.status === 404) {
+        throw new InternalServerErrorException(`Faixa ${id} não encontrada no mercado ${market}`);
+      }
+      throw err;
+    });
+
+    return resp.data;
   }
 
+  /** Busca detalhes de um artista */
   async getArtist(id: string): Promise<any> {
     const token = await this.getToken();
-    const url = `${process.env.SPOTIFY_API_URL}/artists/${id}`;
-    const response = await firstValueFrom(
-      this.http.get(url, { headers: { Authorization: `Bearer ${token}` } }),
+    const apiUrl = this.config.get<string>('SPOTIFY_API_URL');
+
+    const resp = await firstValueFrom(
+      this.http.get(`${apiUrl}/artists/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
     );
-    return response.data;
+    return resp.data;
   }
 }
