@@ -1,6 +1,7 @@
 import { Controller, Get, Param, Query, NotFoundException } from '@nestjs/common';
 import { TracksService } from './tracks.service';
-import { TrackDto } from './dto/track.dto';
+import { TrackSummaryDto } from './dto/track-summary.dto';
+import { TrackDetailDto } from './dto/track-detail.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiParam } from '@nestjs/swagger';
 
 @ApiTags('Tracks')
@@ -9,21 +10,25 @@ export class TracksController {
   constructor(private readonly tracksService: TracksService) {}
 
   @Get('search')
-  @ApiOperation({ summary: 'Search tracks by query', description: 'Pesquisa faixas com base no termo enviado na query.' })
-  @ApiQuery({ name: 'query', required: true, description: 'Termo de busca para pesquisar as faixas' })
-  @ApiResponse({ status: 200, description: 'Lista de faixas retornada com sucesso.', type: [TrackDto] })
-  async searchTracks(@Query('query') query: string): Promise<TrackDto[]> {
+  @ApiOperation({ summary: 'Buscar faixas', description: 'Retorna lista resumida de faixas para o termo informado.' })
+  @ApiQuery({ name: 'query', required: true, description: 'Termo de busca' })
+  @ApiResponse({ status: 200, type: [TrackSummaryDto] })
+  async search(
+    @Query('query') query: string
+  ): Promise<TrackSummaryDto[]> {
     if (!query) {
-      throw new NotFoundException('O parâmetro "query" é obrigatório para a busca.');
+      throw new NotFoundException('Parâmetro "query" é obrigatório.');
     }
-    return await this.tracksService.searchTracks(query);
+    return this.tracksService.searchSummaries(query);
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get track details', description: 'Retorna detalhes completos da faixa com base no ID informado.' })
-  @ApiParam({ name: 'id', required: true, description: 'Identificador único da faixa' })
-  @ApiResponse({ status: 200, description: 'Detalhes da faixa retornados com sucesso.', type: TrackDto })
-  async getTrackDetails(@Param('id') id: string): Promise<TrackDto> {
-    return await this.tracksService.getTrackDetails(id);
+  @ApiOperation({ summary: 'Detalhes da faixa', description: 'Retorna todos os detalhes de uma faixa pelo ID.' })
+  @ApiParam({ name: 'id', description: 'ID da faixa' })
+  @ApiResponse({ status: 200, type: TrackDetailDto })
+  async findOne(
+    @Param('id') id: string
+  ): Promise<TrackDetailDto> {
+    return this.tracksService.findDetail(id);
   }
 }
