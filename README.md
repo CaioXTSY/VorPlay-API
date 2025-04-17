@@ -30,7 +30,7 @@ Feito em NestJS + Prisma + MySQL. Auth via JWT e validação com `class-validato
 ## Instalação
 
 ```bash
-git clone https://github.com/CaioXTSY/vor-play.git
+git clone https://github.com/CaioXTSY/VorPlay-API.git
 cd vor-play
 npm install
 ```
