@@ -17,8 +17,6 @@ import {
       private readonly spotify: SpotifyService,
     ) {}
   
-    /* ───────── playlists ───────── */
-  
     findAll(userId: number) {
       return this.prisma.playlist.findMany({ where: { userId } });
     }
@@ -51,8 +49,6 @@ import {
       await this.prisma.playlist.delete({ where: { id } });
     }
   
-    /* ───────── tracks ───────── */
-  
     async addTrack(
       playlistId: number,
       userId: number,
@@ -60,7 +56,6 @@ import {
     ) {
       await this.ensureExists(playlistId, userId);
   
-      // 1. garante registro da track
       let track = await this.prisma.track.findFirst({
         where: {
           externalId: dto.externalId,
@@ -85,20 +80,17 @@ import {
         });
       }
   
-      // 2. evita duplicidade
       const dup = await this.prisma.playlistTrack.findFirst({
         where: { playlistId, trackId: track.id },
       });
       if (dup) throw new ConflictException('Faixa já existe na playlist');
   
-      // 3. calcula posição
       const last = await this.prisma.playlistTrack.aggregate({
         where: { playlistId },
         _max: { position: true },
       });
       const position = dto.position ?? (last._max.position ?? 0) + 1;
   
-      // 4. insere
       return this.prisma.playlistTrack.create({
         data: { playlistId, trackId: track.id, position },
       });
@@ -115,9 +107,6 @@ import {
       });
     }
   
-    /* ───────── helper ───────── */
-  
-    /** usado internamente para validação */
     async listSpotifyUris(playlistId: number, userId: number) {
       const pl = await this.findOne(playlistId, userId);
       return pl.playlistTracks

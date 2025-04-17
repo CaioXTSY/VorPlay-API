@@ -31,8 +31,6 @@ import { PlaylistDto } from './dto/playlist.dto';
 export class PlaylistsController {
   constructor(private readonly service: PlaylistsService) {}
 
-  /* ───────── playlists ───────── */
-
   @Get()
   @ApiOperation({ summary: 'Minhas playlists' })
   findAll(@Req() req) {
@@ -69,8 +67,6 @@ export class PlaylistsController {
   remove(@Req() req, @Param('id', ParseIntPipe) id: number) {
     return this.service.remove(id, req.user.userId);
   }
-
-  /* ───────── tracks ───────── */
 
   @Post(':id/tracks')
   @ApiOperation({ summary: 'Adicionar faixa' })

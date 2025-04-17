@@ -1,5 +1,3 @@
-// src/reviews/reviews.service.ts
-
 import {
     Injectable,
     NotFoundException,
