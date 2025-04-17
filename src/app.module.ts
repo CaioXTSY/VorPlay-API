@@ -8,7 +8,6 @@ import { ArtistsModule } from './artists/artists.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { FavoritesModule } from './favorites/favorites.module';
 import { PlaylistsModule } from './playlists/playlists.module';
-import { PlaylistTracksModule } from './playlistTracks/playlist-tracks.module';
 import { SearchHistoryModule } from './searchHistory/search-history.module';
 import { FollowsModule } from './follows/follows.module';
 import { AuthModule } from './auth/auth.module';
@@ -25,7 +24,6 @@ import { SpotifyModule } from './integration/spotify.module';
     ReviewsModule,
     FavoritesModule,
     PlaylistsModule,
-    PlaylistTracksModule,
     SearchHistoryModule,
     FollowsModule,
     AuthModule,
