@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
@@ -61,14 +61,20 @@ export class SpotifyService {
   async getTrack(id: string): Promise<any> {
     const token = await this.getToken();
     const apiUrl = this.config.get<string>('SPOTIFY_API_URL');
-    const market = this.config.get<string>('SPOTIFY_MARKET') || 'US';
-    const resp = await firstValueFrom(
-      this.http.get(`${apiUrl}/tracks/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { market },
-      }),
-    );
-    return resp.data;
+    try {
+      const resp = await firstValueFrom(
+        this.http.get(`${apiUrl}/tracks/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { market: this.config.get('SPOTIFY_MARKET') || 'US' },
+        }),
+      );
+      return resp.data;
+    } catch (err: any) {
+      if (err.response?.status === 404) {
+        throw new NotFoundException(`Faixa ${id} não encontrada no Spotify`);
+      }
+      throw err;
+    }
   }
 
   /** Busca artistas */
