@@ -1,6 +1,6 @@
 # 🎵 Vorplay API
 
-Uma API em NestJS para buscar e gerenciar faixas, artistas e conteúdo de playlists usando Spotify + Deezer.
+Uma API em NestJS para buscar e gerenciar faixas, artistas e conteúdo de playlists usando Spotify.
 
 ## Sumário
 
@@ -19,7 +19,7 @@ Uma API em NestJS para buscar e gerenciar faixas, artistas e conteúdo de playli
 ## Sobre
 
 Este projeto expõe vários endpoints para:  
-- Pesquisar faixas e artistas (Spotify + Deezer)  
+- Pesquisar faixas e artistas (Spotify)  
 - Gerenciar playlists, favoritos e reviews de usuários  
 - Controlar histórico de busca e seguir artistas/usuários  
 
