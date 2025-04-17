@@ -27,7 +27,7 @@ import { CreateReviewDto } from './dto/create-review.dto';
 import { ReviewDto } from './dto/review.dto';
 
 @ApiTags('Reviews')
-@Controller('api/v1/reviews')
+@Controller('reviews')
 export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 

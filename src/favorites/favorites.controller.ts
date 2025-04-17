@@ -28,7 +28,7 @@ import { FavoriteDto } from './dto/favorite.dto';
 import { ExternalProvider } from '@prisma/client';
 
 @ApiTags('Favorites')
-@Controller('api/v1/favorites')
+@Controller('favorites')
 export class FavoritesController {
   constructor(private readonly favService: FavoritesService) {}
 
