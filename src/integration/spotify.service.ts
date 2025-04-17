@@ -148,4 +148,38 @@ export class SpotifyService {
     );
     return resp.data.items;
   }
+
+  async createPlaylistRemote(
+    name: string,
+    description = '',
+    isPublic = false,
+  ): Promise<string | null> {
+    const token = this.config.get<string>('SPOTIFY_USER_TOKEN');
+    const userId = this.config.get<string>('SPOTIFY_USER_ID');
+    if (!token || !userId) return null; // integração não configurada
+  
+    const api = this.config.get<string>('SPOTIFY_API_URL');
+    const resp = await firstValueFrom(
+      this.http.post(
+        `${api}/users/${userId}/playlists`,
+        { name, description, public: isPublic },
+        { headers: { Authorization: token } },
+      ),
+    );
+    return resp.data.id; // retorna o id da playlist criada no Spotify
+  }
+  
+  async addTracksRemote(playlistId: string, uris: string[]) {
+    const token = this.config.get<string>('SPOTIFY_USER_TOKEN');
+    if (!token || !uris.length) return;
+  
+    const api = this.config.get<string>('SPOTIFY_API_URL');
+    await firstValueFrom(
+      this.http.post(
+        `${api}/playlists/${playlistId}/tracks`,
+        { uris },
+        { headers: { Authorization: token } },
+      ),
+    );
+  }
 }
