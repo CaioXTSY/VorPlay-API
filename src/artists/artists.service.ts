@@ -58,12 +58,32 @@ export class ArtistsService {
   async getTopTracks(id: string): Promise<TrackSummaryDto[]> {
     const tracks = await this.spotify.getArtistTopTracks(id);
     return tracks.map(t => ({
-      id         : t.id,
-      title      : t.name,
+      id: t.id,
+      title: t.name,
       artistNames: t.artists.map(a => a.name),
-      albumName  : t.album?.name,
-      durationMs : t.duration_ms,
-      href       : t.external_urls.spotify,
+      albumName: t.album?.name,
+      durationMs: t.duration_ms,
+      imageUrl: t.album?.images?.[0]?.url,
+      images: t.album?.images?.map(img => ({
+        url: img.url,
+        width: img.width,
+        height: img.height,
+      })),
+      href: t.external_urls.spotify,
     }));
+  }
+  
+  async searchArtistTracks(
+    id: string,
+    limit = 20,
+    cursor = 0,
+  ): Promise<{ items: TrackSummaryDto[]; nextCursor?: number }> {
+    await this.getInfo(id);
+    const all = await this.getTopTracks(id);
+    const slice = all.slice(cursor, cursor + limit);
+    const next = cursor + slice.length;
+    const nextCursor = next < all.length ? next : undefined;
+
+    return { items: slice, nextCursor };
   }
 }

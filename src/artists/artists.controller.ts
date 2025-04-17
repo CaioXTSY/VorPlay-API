@@ -9,6 +9,7 @@ import { CursorPaginationDto }   from '../common/dto/cursor-pagination.dto';
 import {
   ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiParam,
 } from '@nestjs/swagger';
+import { ArtistTrackCursorPageDto } from './dto/artist-track-cursor-page.dto';
 
 @ApiTags('Artists')
 @Controller('artists')
@@ -57,5 +58,18 @@ export class ArtistsController {
   @ApiResponse({ status: 200, description: 'Top faixas', type: [TrackSummaryDto] })
   async topTracks(@Param('id') id: string): Promise<TrackSummaryDto[]> {
     return this.artistsService.getTopTracks(id);
+  }
+
+  @Get(':id/tracks')
+  @ApiOperation({ summary: 'Faixas do artista', description: 'Lista faixas de um artista com cursor numérico.' })
+  @ApiParam({ name: 'id', example: '37PZXblQTqpEWGdjctNcGP' })
+  @ApiQuery({ name: 'cursor', required: false, example: 0 })
+  @ApiQuery({ name: 'limit', required: false, example: 10 })
+  @ApiResponse({ status: 200, type: ArtistTrackCursorPageDto, description: 'Página de faixas' })
+  async artistTracks(
+    @Param('id') id: string,
+    @Query() { cursor = 0, limit }: CursorPaginationDto,
+  ): Promise<ArtistTrackCursorPageDto> {
+    return this.artistsService.searchArtistTracks(id, limit, cursor);
   }
 }
