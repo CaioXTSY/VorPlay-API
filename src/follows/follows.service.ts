@@ -5,64 +5,47 @@ import {
   } from '@nestjs/common';
   import { PrismaService } from 'src/prisma/prisma.service';
   import { CreateFollowDto } from './dto/create-follow.dto';
-  import { FollowTargetType, Prisma } from '@prisma/client';
   
   @Injectable()
   export class FollowsService {
     constructor(private readonly prisma: PrismaService) {}
   
-    listByUser(
-      followerId: number,
-      type?: FollowTargetType,
-    ) {
+    listByUser(followerId: number) {
       return this.prisma.follow.findMany({
-        where: { followerId, ...(type && { targetType: type }) },
+        where: { followerId },
       });
     }
   
-    listFollowersOfUser(userId: number) {
+    listForUser(userId: number) {
       return this.prisma.follow.findMany({
-        where: { targetType: 'usuario', targetId: userId },
+        where: { followerId: userId },
       });
     }
   
-    async isFollowing(
-      followerId: number,
-      targetType: FollowTargetType,
-      targetId: number,
-    ) {
-      return this.prisma.follow.findFirst({
-        where: { followerId, targetType, targetId },
+    async create(followerId: number, dto: CreateFollowDto) {
+      if (followerId === dto.targetId) {
+        throw new ConflictException('Você não pode seguir a si mesmo.');
+      }
+  
+      const dup = await this.prisma.follow.findFirst({
+        where: { followerId, targetId: dto.targetId },
       });
-    }
-  
-  
-    async create(
-      followerId: number,
-      dto: CreateFollowDto,
-    ) {
-      const exists = await this.isFollowing(
-        followerId,
-        dto.targetType,
-        dto.targetId,
-      );
-      if (exists) throw new ConflictException('Você já segue esse alvo.');
+      if (dup) throw new ConflictException('Você já segue esse usuário.');
   
       return this.prisma.follow.create({
         data: {
           followerId,
-          targetType: dto.targetType,
           targetId: dto.targetId,
-        } as Prisma.FollowUncheckedCreateInput,
+          targetType: 'usuario', // constante
+        },
       });
     }
   
     async remove(followerId: number, id: number) {
-      const follow = await this.prisma.follow.findFirst({
+      const row = await this.prisma.follow.findFirst({
         where: { id, followerId },
       });
-      if (!follow) throw new NotFoundException('Follow não encontrado.');
+      if (!row) throw new NotFoundException('Follow não encontrado');
       await this.prisma.follow.delete({ where: { id } });
     }
   }
-  
