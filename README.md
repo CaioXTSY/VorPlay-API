@@ -111,6 +111,7 @@ Acesse `http://localhost:3000/api`.
 | GET    | `/artists/{id}`                  | `:id`                                  | `ArtistInfoDto`                            |
 | GET    | `/artists/{id}/albums`           | `:id`                                  | `AlbumSummaryDto[]`                        |
 | GET    | `/artists/{id}/top-tracks`       | `:id`                                  | `TrackSummaryDto[]`                        |
+| GET    | `/artists/{id}/tracks`           | `?cursor=0&limit=20`                   | `ArtistTrackCursorPageDto`                 |
 
 ### Playlists
 
