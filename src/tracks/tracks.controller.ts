@@ -36,7 +36,7 @@ export class TracksController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Detalhes da faixa' })
-  @ApiParam({ name: 'id', example: '6J3l2JHhJ4z3gJvS7rQKZk' })
+  @ApiParam({ name: 'id', example: '0VjIjW4GlUZAMYd2vXMi3b3l2JHhJ4z3gJvS7rQKZk' })
   @ApiResponse({ status: 200, description: 'Detalhes completos da faixa', type: TrackDetailDto })
   async detail(@Param('id') id: string): Promise<TrackDetailDto> {
     return this.tracksService.detail(id);

@@ -5,7 +5,7 @@ import { ApiProperty } from '@nestjs/swagger';
  * Estrutura simplificada para refletir o que o `TracksService` devolve.
  */
 export class TrackDetailDto {
-  @ApiProperty({ example: '6J3l2JHhJ4z3gJvS7rQKZk' })
+  @ApiProperty({ example: '0VjIjW4GlUZAMYd2vXMi3b3l2JHhJ4z3gJvS7rQKZk' })
   id: string;
 
   @ApiProperty({ example: 'Blinding Lights' })
@@ -36,7 +36,7 @@ export class TrackDetailDto {
   imageUrl?: string;
 
   @ApiProperty({
-    example: 'https://api.spotify.com/v1/tracks/6J3l2JHhJ4z3gJvS7rQKZk',
+    example: 'https://api.spotify.com/v1/tracks/0VjIjW4GlUZAMYd2vXMi3b3l2JHhJ4z3gJvS7rQKZk',
   })
   href: string;
 }

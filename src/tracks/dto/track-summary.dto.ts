@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class TrackSummaryDto {
-  @ApiProperty({ example: '6J3l2JHhJ4z3gJvS7rQKZk' })
+  @ApiProperty({ example: '0VjIjW4GlUZAMYd2vXMi3b3l2JHhJ4z3gJvS7rQKZk' })
   id: string;
 
   @ApiProperty({ example: 'Blinding Lights' })
@@ -16,6 +16,6 @@ export class TrackSummaryDto {
   @ApiProperty({ example: 200040, description: 'Duração em milissegundos' })
   durationMs: number;
 
-  @ApiProperty({ example: 'https://api.spotify.com/v1/tracks/6J3l2JHhJ4z3gJvS7rQKZk' })
+  @ApiProperty({ example: 'https://api.spotify.com/v1/tracks/0VjIjW4GlUZAMYd2vXMi3b3l2JHhJ4z3gJvS7rQKZk' })
   href: string;
 }
