@@ -1,15 +1,28 @@
 import {
-  Controller, Get, Post, Put, Delete,
-  Body, Param, ParseIntPipe, Req, UseGuards,
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  ParseIntPipe,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import {
-  ApiTags, ApiBearerAuth, ApiOperation, ApiParam,
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { PlaylistsService } from './playlists.service';
 import { CreatePlaylistDto } from './dto/create-playlist.dto';
 import { UpdatePlaylistDto } from './dto/update-playlist.dto';
 import { AddTrackDto } from './dto/add-track.dto';
+import { PlaylistDto } from './dto/playlist.dto';
 
 @ApiTags('playlists')
 @ApiBearerAuth()
@@ -17,6 +30,8 @@ import { AddTrackDto } from './dto/add-track.dto';
 @Controller('playlists')
 export class PlaylistsController {
   constructor(private readonly service: PlaylistsService) {}
+
+  /* ───────── playlists ───────── */
 
   @Get()
   @ApiOperation({ summary: 'Minhas playlists' })
@@ -26,19 +41,21 @@ export class PlaylistsController {
 
   @Post()
   @ApiOperation({ summary: 'Criar playlist' })
+  @ApiResponse({ status: 201, type: PlaylistDto })
   create(@Req() req, @Body() dto: CreatePlaylistDto) {
     return this.service.create(req.user.userId, dto);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Detalhe da playlist' })
-  @ApiParam({ name: 'id', example: 5 })
+  @ApiParam({ name: 'id', example: 1 })
+  @ApiResponse({ status: 200, type: PlaylistDto })
   findOne(@Req() req, @Param('id', ParseIntPipe) id: number) {
     return this.service.findOne(id, req.user.userId);
   }
 
   @Put(':id')
-  @ApiOperation({ summary: 'Editar playlist' })
+  @ApiOperation({ summary: 'Atualizar playlist (nome/descrição)' })
   update(
     @Req() req,
     @Param('id', ParseIntPipe) id: number,
@@ -53,7 +70,7 @@ export class PlaylistsController {
     return this.service.remove(id, req.user.userId);
   }
 
-  /* tracks */
+  /* ───────── tracks ───────── */
 
   @Post(':id/tracks')
   @ApiOperation({ summary: 'Adicionar faixa' })
@@ -73,13 +90,5 @@ export class PlaylistsController {
     @Param('trackId', ParseIntPipe) trackId: number,
   ) {
     return this.service.removeTrack(playlistId, req.user.userId, trackId);
-  }
-
-  /* Exportação */
-
-  @Get(':id/export/spotify')
-  @ApiOperation({ summary: 'Gerar URIs Spotify' })
-  exportUris(@Req() req, @Param('id', ParseIntPipe) id: number) {
-    return this.service.listSpotifyUris(id, req.user.userId);
   }
 }

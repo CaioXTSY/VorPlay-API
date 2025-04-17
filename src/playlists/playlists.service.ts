@@ -7,8 +7,8 @@ import {
   import { SpotifyService } from 'src/integration/spotify.service';
   import { CreatePlaylistDto } from './dto/create-playlist.dto';
   import { UpdatePlaylistDto } from './dto/update-playlist.dto';
-  import { ExternalProvider } from '@prisma/client';
   import { AddTrackDto } from './dto/add-track.dto';
+  import { ExternalProvider } from '@prisma/client';
   
   @Injectable()
   export class PlaylistsService {
@@ -17,7 +17,7 @@ import {
       private readonly spotify: SpotifyService,
     ) {}
   
-    /* playlists */
+    /* ───────── playlists ───────── */
   
     findAll(userId: number) {
       return this.prisma.playlist.findMany({ where: { userId } });
@@ -51,7 +51,7 @@ import {
       await this.prisma.playlist.delete({ where: { id } });
     }
   
-    /* tracks */
+    /* ───────── tracks ───────── */
   
     async addTrack(
       playlistId: number,
@@ -60,14 +60,18 @@ import {
     ) {
       await this.ensureExists(playlistId, userId);
   
-      // garante existência da track
+      // 1. garante registro da track
       let track = await this.prisma.track.findFirst({
-        where: { externalId: dto.externalId, externalProvider: dto.externalProvider },
+        where: {
+          externalId: dto.externalId,
+          externalProvider: dto.externalProvider,
+        },
       });
   
       if (!track) {
         if (dto.externalProvider !== ExternalProvider.Spotify)
-          throw new ConflictException('Somente Spotify suportado');
+          throw new ConflictException('Apenas Spotify suportado no momento');
+  
         const data = await this.spotify.getTrack(dto.externalId);
         track = await this.prisma.track.create({
           data: {
@@ -81,40 +85,45 @@ import {
         });
       }
   
-      // verifica duplicado
+      // 2. evita duplicidade
       const dup = await this.prisma.playlistTrack.findFirst({
         where: { playlistId, trackId: track.id },
       });
-      if (dup) throw new ConflictException('Faixa já existe');
+      if (dup) throw new ConflictException('Faixa já existe na playlist');
   
+      // 3. calcula posição
       const last = await this.prisma.playlistTrack.aggregate({
         where: { playlistId },
         _max: { position: true },
       });
-      const pos = dto.position ?? (last._max.position ?? 0) + 1;
+      const position = dto.position ?? (last._max.position ?? 0) + 1;
   
+      // 4. insere
       return this.prisma.playlistTrack.create({
-        data: { playlistId, trackId: track.id, position: pos },
+        data: { playlistId, trackId: track.id, position },
       });
     }
   
-    async removeTrack(playlistId: number, userId: number, trackId: number) {
+    async removeTrack(
+      playlistId: number,
+      userId: number,
+      trackId: number,
+    ) {
       await this.ensureExists(playlistId, userId);
       await this.prisma.playlistTrack.delete({
         where: { playlistId_trackId: { playlistId, trackId } },
       });
     }
   
-    /* export URIs */
+    /* ───────── helper ───────── */
   
+    /** usado internamente para validação */
     async listSpotifyUris(playlistId: number, userId: number) {
       const pl = await this.findOne(playlistId, userId);
       return pl.playlistTracks
         .filter(pt => pt.track.externalProvider === ExternalProvider.Spotify)
         .map(pt => `spotify:track:${pt.track.externalId}`);
     }
-  
-    /* helper */
   
     private async ensureExists(id: number, userId: number) {
       const ok = await this.prisma.playlist.findFirst({ where: { id, userId } });
