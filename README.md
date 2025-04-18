@@ -81,7 +81,7 @@ Acesse `http://localhost:3000/api`.
 | ------ | ---------------- | ---------------------------- | --------------------- |
 | POST   | `/auth/register` | `{ name, email, password }`  | `{ access_token, expires_in, user }` |
 | POST   | `/auth/login`    | `{ email, password }`        | `{ access_token, expires_in, user }` |
-| GET    | `/auth/profile`  | (Bearer JWT)                 | `{ id, name, email }` |
+| POST   | `/auth/validate` | (Bearer JWT)                 | `{ access_token, expires_in, user }` |
 
 ### Usuários
 
