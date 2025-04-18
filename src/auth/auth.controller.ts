@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -9,6 +9,7 @@ import {
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 class AuthResponse {
   @ApiProperty({ example: 'eyJhbGciOiJIUzI1NiI...' })
@@ -40,5 +41,15 @@ export class AuthController {
   @Post('login')
   async login(@Body() dto: LoginDto): Promise<AuthResponse> {
     return this.authService.login(dto.email, dto.password);
+  }
+
+  @ApiOperation({ summary: 'Validar e renovar token' })
+  @ApiResponse({ status: 200, description: 'Token renovado com sucesso', type: AuthResponse })
+  @ApiResponse({ status: 401, description: 'Token inválido' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('validate')
+  async validateToken(@Request() req): Promise<AuthResponse> {
+    return this.authService.generateToken(req.user.sub, req.user.email);
   }
 }
