@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { User } from '@prisma/client';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
+import { SearchUsersDto } from './dto/search-users.dto';
 
 @Injectable()
 export class UsersService {
@@ -48,5 +49,31 @@ export class UsersService {
   async remove(id: number): Promise<{ message: string }> {
     await this.prisma.user.delete({ where: { id } });
     return { message: 'Usuário removido com sucesso' };
+  }
+
+  async searchUsers(searchParams: SearchUsersDto): Promise<Pick<User, 'id' | 'name' | 'email' | 'profilePicture' | 'createdAt'>[]> {
+    const { query } = searchParams;
+
+    // Se não houver termo de busca, retorna lista vazia
+    if (!query) {
+      return [];
+    }
+
+    // Busca por nome OU email
+    return this.prisma.user.findMany({
+      where: {
+        OR: [
+          { name: { contains: query } },
+          { email: { contains: query } }
+        ]
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        profilePicture: true,
+        createdAt: true
+      }
+    });
   }
 }

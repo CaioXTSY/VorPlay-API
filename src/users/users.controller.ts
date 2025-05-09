@@ -1,8 +1,9 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Put, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Put, Query, Request, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { UsersService } from "./users.service";
 import { AuthGuard } from "@nestjs/passport";
 import { UpdateUserDto } from "./dto/update-user.dto";
+import { SearchUsersDto } from './dto/search-users.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -36,6 +37,13 @@ export class UsersController {
     return this.usersService.remove(req.user.userId);
   }
   
+  @ApiOperation({ summary: 'Buscar usuários por nome ou email' })
+  @ApiResponse({ status: 200, description: 'Lista de usuários encontrados' })
+  @Get('search')
+  search(@Query() searchDto: SearchUsersDto) {
+    return this.usersService.searchUsers(searchDto);
+  }
+
   @ApiOperation({ summary: 'Listar todos os usuários' })
   @ApiResponse({ status: 200, description: 'Lista de usuários' })
   @Get()
@@ -51,4 +59,6 @@ export class UsersController {
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.findById(id);
   }
+
+
 }
