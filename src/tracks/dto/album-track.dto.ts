@@ -14,7 +14,7 @@ export class AlbumInfoDto {
 }
 
 export class AlbumTrackDto {
-  @ApiProperty({ example: '6J3l2JHhJ4z3gJvS7rQKZk' }) id: string;
+  @ApiProperty({ example: '0VjIjW4GlUZAMYd2vXMi3b3l2JHhJ4z3gJvS7rQKZk' }) id: string;
   @ApiProperty({ example: 'Blinding Lights' }) title: string;
   @ApiProperty({ example: 1, description: 'Posição da faixa no álbum' }) trackNumber: number;
   @ApiProperty({ example: 200040, description: 'Duração em milissegundos' }) durationMs: number;

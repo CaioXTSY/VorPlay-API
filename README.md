@@ -30,7 +30,7 @@ Feito em NestJS + Prisma + MySQL. Auth via JWT e validação com `class-validato
 ## Instalação
 
 ```bash
-git clone https://github.com/CaioXTSY/vor-play.git
+git clone https://github.com/CaioXTSY/VorPlay-API.git
 cd vor-play
 npm install
 ```
@@ -81,7 +81,7 @@ Acesse `http://localhost:3000/api`.
 | ------ | ---------------- | ---------------------------- | --------------------- |
 | POST   | `/auth/register` | `{ name, email, password }`  | `{ access_token, expires_in, user }` |
 | POST   | `/auth/login`    | `{ email, password }`        | `{ access_token, expires_in, user }` |
-| GET    | `/auth/profile`  | (Bearer JWT)                 | `{ id, name, email }` |
+| POST   | `/auth/validate` | (Bearer JWT)                 | `{ access_token, expires_in, user }` |
 
 ### Usuários
 
@@ -111,6 +111,7 @@ Acesse `http://localhost:3000/api`.
 | GET    | `/artists/{id}`                  | `:id`                                  | `ArtistInfoDto`                            |
 | GET    | `/artists/{id}/albums`           | `:id`                                  | `AlbumSummaryDto[]`                        |
 | GET    | `/artists/{id}/top-tracks`       | `:id`                                  | `TrackSummaryDto[]`                        |
+| GET    | `/artists/{id}/tracks`           | `?cursor=0&limit=20`                   | `ArtistTrackCursorPageDto`                 |
 
 ### Playlists
 

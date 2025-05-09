@@ -3,7 +3,7 @@ import { ExternalProvider } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class AddTrackDto {
-  @ApiProperty({ example: '6J3l2JHhJ4z3gJvS7rQKZk' })
+  @ApiProperty({ example: '0VjIjW4GlUZAMYd2vXMi3b3l2JHhJ4z3gJvS7rQKZk' })
   @IsString()
   externalId: string;
 
