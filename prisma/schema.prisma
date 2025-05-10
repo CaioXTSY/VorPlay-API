@@ -1,7 +1,7 @@
 // prisma/schema.prisma
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -20,50 +20,50 @@ enum FollowTargetType {
 }
 
 model User {
-  id             Int              @id @default(autoincrement())
+  id             Int      @id @default(autoincrement())
   name           String
-  email          String           @unique
+  email          String   @unique
   password       String
-  profilePicture String?          @map("profile_picture")
-  createdAt      DateTime         @default(now()) @map("created_at")
-  updatedAt      DateTime         @updatedAt   @map("updated_at")
+  profilePicture String?  @map("profile_picture")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
-  reviews        Review[]
-  favorites      Favorite[]
-  playlists      Playlist[]
-  searchHistory  SearchHistory[]
-  follows        Follow[]         @relation("UserFollows")
+  reviews       Review[]
+  favorites     Favorite[]
+  playlists     Playlist[]
+  searchHistory SearchHistory[]
+  follows       Follow[]        @relation("UserFollows")
 
   @@map("users")
 }
 
 model Track {
-  id               Int               @id @default(autoincrement())
-  externalId       String            @map("external_id")
+  id               Int              @id @default(autoincrement())
+  externalId       String           @map("external_id")
   title            String
   artist           String?
   album            String?
-  coverUrl         String?           @map("cover_url")
-  externalProvider ExternalProvider  @default(Spotify) @map("external_provider")
-  createdAt        DateTime          @default(now()) @map("created_at")
-  updatedAt        DateTime          @updatedAt   @map("updated_at")
+  coverUrl         String?          @map("cover_url")
+  externalProvider ExternalProvider @default(Spotify) @map("external_provider")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
 
-  reviews          Review[]
-  favorites        Favorite[]
-  playlistTracks   PlaylistTrack[]
+  reviews        Review[]
+  favorites      Favorite[]
+  playlistTracks PlaylistTrack[]
 
   @@unique([externalId, externalProvider], name: "uk_track_provider")
   @@map("tracks")
 }
 
 model Artist {
-  id               Int               @id @default(autoincrement())
-  externalId       String            @map("external_id")
+  id               Int              @id @default(autoincrement())
+  externalId       String           @map("external_id")
   name             String
-  pictureUrl       String?           @map("picture_url")
-  externalProvider ExternalProvider  @default(Spotify) @map("external_provider")
-  createdAt        DateTime          @default(now()) @map("created_at")
-  updatedAt        DateTime          @updatedAt   @map("updated_at")
+  pictureUrl       String?          @map("picture_url")
+  externalProvider ExternalProvider @default(Spotify) @map("external_provider")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
 
   @@unique([externalId, externalProvider], name: "uk_artist_provider")
   @@map("artists")
@@ -78,7 +78,7 @@ model Review {
   rating    Int
   comment   String?
   createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt   @map("updated_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("reviews")
 }
@@ -96,15 +96,16 @@ model Favorite {
 }
 
 model Playlist {
-  id             Int              @id @default(autoincrement())
-  user           User             @relation(fields: [userId], references: [id])
-  userId         Int              @map("user_id")
-  name           String
-  description    String?
-  createdAt      DateTime         @default(now()) @map("created_at")
-  updatedAt      DateTime         @updatedAt   @map("updated_at")
+  id          Int      @id @default(autoincrement())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      Int      @map("user_id")
+  name        String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   playlistTracks PlaylistTrack[]
+
   @@map("playlists")
 }
 

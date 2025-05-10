@@ -34,4 +34,4 @@ COPY --from=builder /app/dist ./dist
 
 COPY --from=builder /app/prisma ./prisma
 
-CMD ["node", "dist/main"]
+CMD ["sh", "-c", "npx prisma migrate deploy && npm run start:prod"]
