@@ -94,6 +94,7 @@ Acesse `http://localhost:3000/api`.
 | DELETE | `/users/me`   | –                                 | Conta removida        |
 | GET    | `/users`      | –                                 | Lista de usuários     |
 | GET    | `/users/{id}` | `:id`                             | Usuário por ID        |
+| GET    | `/users/search`| `nome,email`                      | Lista de usuários |
 
 ### Faixas
 
