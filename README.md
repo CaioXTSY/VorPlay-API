@@ -1,31 +1,159 @@
 # 🎵 Vorplay API
 
-Uma API em NestJS para buscar e gerenciar faixas, artistas e conteúdo de playlists usando Spotify.
+Uma API em NestJS para buscar e gerenciar faixas, artistas e conteúdo de playlists usando Spotify, implementada com padrões de arquitetura orientada a serviços.
 
+
+## 📚 Informações Acadêmicas
+
+### Disciplina
+- **Nome:** Computação Orientada a Serviços
+- **Professor:** Tercio de Morais
+- **Instituição:** Universidade Federal de Alagoas (UFAL) - Campus Arapiraca
+
+### 👨‍💻 Equipe
+- Caio Teixeira da Silva
+- Gustavo Henrique dos Santos Malaquias
+
+---
 ## Sumário
 
-- [Sobre](#sobre)  
-- [Instalação](#instalação)  
-- [Variáveis de Ambiente](#variáveis-de-ambiente)  
-- [Banco de Dados](#banco-de-dados)  
-- [Rodando em Dev](#rodando-em-dev)  
-- [Documentação Swagger](#documentação-swagger)  
-- [Endpoints](#endpoints)  
-- [Paginação Cursor‑Based](#paginação-cursor-based)  
-- [Interceptor de Histórico](#interceptor-de-histórico)  
+- [Visão Geral](#-sobre)
+- [Princípios SOA Implementados](#-padrões-de-arquitetura-aplicados)
+- [Padrões de Arquitetura](#-padrões-de-arquitetura-aplicados)
+- [Tecnologias e Frameworks](#-tecnologias-e-bibliotecas)
+- [Configuração e Instalação](#instalação)
+  - [Banco de Dados](#banco-de-dados)
+  - [Variáveis de Ambiente](#variáveis-de-ambiente)
+  - [Rodando em Dev](#rodando-em-dev)
+- [Documentação da API](#documentação-swagger)
+  - [Endpoints](#endpoints)
+- [Recursos Avançados](#-recursos-avançados)
+  - [Paginação Cursor-Based](#paginação-cursor-based)
+  - [Interceptor de Histórico](#interceptor-de-histórico)
 
 ---
 
-## Sobre
+## 🎯 Sobre
 
-Este projeto expõe vários endpoints para:  
-- Pesquisar faixas e artistas (Spotify)  
-- Gerenciar playlists, favoritos e reviews de usuários  
-- Controlar histórico de busca e seguir artistas/usuários  
+O VorPlay API é um sistema orientado a serviços que:
 
-Feito em NestJS + Prisma + MySQL. Auth via JWT e validação com `class-validator`.
+- Integra-se com a API do Spotify para obtenção de dados musicais
+- Oferece gerenciamento completo de usuários, playlists e interações sociais
+- Implementa padrões arquiteturais SOA para desacoplamento e reusabilidade
+- Fornece endpoints RESTful para interações cliente-servidor
 
 ---
+
+## 🔄 Princípios SOA Implementados
+
+### Abstração
+- Encapsulamento das complexidades de comunicação com APIs externas
+- Exposição de interfaces simplificadas para os consumidores
+
+### Autonomia
+- Serviços independentes que podem ser modificados sem afetar outros componentes
+- Cada módulo (users, tracks, artists, etc.) gerencia seu próprio domínio
+
+### Contrato de Serviço
+- DTOs bem definidos para entrada e saída de dados
+- Validação de entrada usando class-validator
+- Documentação via Swagger/OpenAPI
+
+### Descoberta de Serviço
+- Metadados de API expostos via Swagger
+- Versionamento de API (/api/v1)
+
+### Composição
+- Combinação de múltiplos serviços para criar funcionalidades complexas
+- Exemplo: Reviews combinam dados do Spotify com avaliações de usuários
+
+### Reusabilidade
+- Módulos compartilhados (PrismaService, SpotifyService)
+- Interceptores e filtros aplicáveis em toda a aplicação
+
+---
+
+## 🏗️ Padrões de Arquitetura Aplicados
+
+### 🔄 Proxy/Adapter
+O sistema implementa o padrão Proxy/Adapter para intermediar e adaptar comunicações externas:
+
+- **Spotify Integration Service**:
+  - Encapsula complexidades da API do Spotify
+  - Gerencia autenticação e renovação de tokens
+  - Adapta respostas para DTOs internos padronizados
+  - Exemplo: `spotify.service.ts`
+
+- **Auth Proxy**:
+  - Intermediação segura de autenticação
+  - Adaptação de tokens JWT para o fluxo interno
+  - Exemplo: `jwt.strategy.ts`
+
+### 🔄 Aggregator
+O padrão Aggregator combina dados de diferentes fontes para criar uma resposta unificada:
+
+- **Reviews + Tracks**:
+  - Combina metadados de faixas do Spotify com avaliações do banco local
+  - Implementação em `reviews.service.ts`
+
+- **User Follows**:
+  - Agrega dados de usuários internos com artistas externos
+  - Implementação em `follows.service.ts`
+
+### 🔄 API Gateway
+O sistema atua como um gateway simplificado:
+
+- Encaminha solicitações para serviços apropriados
+- Normaliza respostas para um formato consistente
+- Implementa autenticação e autorização centralizadas
+- Exemplo: Controladores no padrão NestJS (`*.controller.ts`)
+---
+
+## 🏛️ Arquitetura do Sistema
+
+O VorPlay API implementa uma arquitetura orientada a serviços que atua como gateway entre clientes e serviços externos:
+
+```
+┌─────────────┐     ┌────────────┐     ┌───────────────┐
+│  Clientes   │────▶│ VorPlay API│────▶│ Serviços      │
+│  (Frontend) │◀────│ (Gateway)  │◀────│ Externos      │
+└─────────────┘     └────────────┘     └───────────────┘
+              │                    │
+              ▼                    ▼
+          ┌──────────┐        ┌─────────────┐
+          │ Banco de │        │ Spotify API │
+          │ Dados    │        │             │
+          └──────────┘        └─────────────┘
+```
+
+- **Clientes**: Aplicações frontend que consomem a API
+- **VorPlay API**: Gateway central que gerencia autenticação, roteamento e integração
+- **Banco de Dados**: Armazena dados de usuários, playlists, avaliações e histórico
+- **Serviços Externos**: Integrações com APIs externas, principalmente o Spotify
+## 🛠️ Tecnologias e Bibliotecas
+
+### Core
+- **NestJS**: Framework backend com arquitetura modular
+- **TypeScript**: Tipagem estática para JavaScript
+- **Prisma**: ORM para manipulação de banco de dados
+- **MySQL**: Sistema de gerenciamento de banco de dados
+
+### Autenticação e Segurança
+- **Passport**: Middleware de autenticação
+- **JWT**: Tokens para autenticação stateless
+- **bcrypt**: Hashing de senhas
+
+### Integração e Validação
+- **Axios**: Cliente HTTP para integrações
+- **class-validator**: Validação de DTOs
+- **class-transformer**: Transformação de objetos
+
+### Documentação
+- **Swagger/OpenAPI**: Documentação interativa
+- **ReDoc**: Documentação alternativa
+
+---
+
 
 ## Instalação
 
@@ -172,15 +300,23 @@ Acesse `http://localhost:3000/api`.
 | DELETE | `/follows/{id}`          | `:id`                       | –              |
 | GET    | `/follows/user/{userId}` | `:userId`                   | `FollowDto[]`  |
 
----
+## 🔍 Recursos Avançados
 
-## Paginação Cursor‑Based
+### Paginação Cursor-Based
 
-- **cursor**: offset inicial (0, 20, 40…)  
-- **limit**: quantos itens retornar  
-- Resposta inclui `nextCursor` ou `undefined`.
+A API utiliza um sistema de paginação baseado em cursor para otimização de consultas:
 
----
+- **cursor**: Define o ponto de início (offset) da paginação
+- **limit**: Define o número máximo de itens retornados
+- **nextCursor**: Presente na resposta para facilitar a paginação no cliente
+
+### Interceptores e Middleware
+
+O sistema implementa diversos interceptores para aspectos transversais:
+
+- **Search History**: Registra automaticamente buscas realizadas pelos usuários
+- **Error Handling**: Tratamento padronizado de erros
+- **Authentication**: Middleware para validação de tokens JWT
 
 ## Interceptor de Histórico
 
