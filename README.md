@@ -137,7 +137,7 @@ O VorPlay API implementa uma arquitetura orientada a serviços que atua como gat
 - **NestJS**: Framework backend com arquitetura modular
 - **TypeScript**: Tipagem estática para JavaScript
 - **Prisma**: ORM para manipulação de banco de dados
-- **MySQL**: Sistema de gerenciamento de banco de dados
+- **PostgreSQL**: Sistema de gerenciamento de banco de dados
 
 ### Autenticação e Segurança
 - **Passport**: Middleware de autenticação
@@ -166,7 +166,7 @@ npm install
 
 ### Banco de Dados
 
-1. Configure `DATABASE_URL` (MySQL) no `.env`.  
+1. Configure `DATABASE_URL` (PostgreSQL) no `.env`.
 2. Rode:
    ```bash
    npx prisma migrate dev --name init
@@ -176,7 +176,7 @@ npm install
 ### Variáveis de Ambiente
 
 ```dotenv
-DATABASE_URL="mysql://user:pass@host:3306/dbname"
+DATABASE_URL="postgresql://user:pass@host:5432/dbname?schema=public"
 JWT_SECRET="uma-chave-secreta"
 SPOTIFY_CLIENT_ID="..."
 SPOTIFY_CLIENT_SECRET="..."
@@ -346,3 +346,49 @@ app.useGlobalInterceptors(
   new SearchHistoryInterceptor(app.get(SearchHistoryService)),
 );
 ```
+
+## 🔧 Arquitetura com Docker
+
+Este projeto utiliza Docker para facilitar a execução, desenvolvimento e deploy da aplicação. A seguir, explicamos a lógica por trás do `Dockerfile` e do `docker-compose.yaml`.
+
+### 📦 Dockerfile
+
+O `Dockerfile` está dividido em dois estágios (multistage build), otimizando o tamanho da imagem final e separando a fase de build da fase de execução:
+
+**Stage 1: Build (`builder`)**
+- Baseado em `node:20-alpine`, uma imagem leve do Node.js.
+- Define o diretório de trabalho como `/app`.
+- Copia os arquivos `package*.json` e executa `npm ci` para instalar as dependências.
+- Copia o restante do código-fonte e o arquivo `.env`.
+- Gera o Prisma Client com `npx prisma generate`.
+- Compila o projeto com `npm run build`.
+
+**Stage 2: Produção (`runner`)**
+- Também usa `node:20-alpine` para manter a imagem leve.
+- Apenas as dependências de produção são instaladas com `npm ci --omit=dev`.
+- Copia arquivos essenciais do build: `.env`, `dist/`, `prisma/` e os módulos do Prisma gerados no estágio anterior.
+- O comando de inicialização `CMD` aplica as migrations no banco com `prisma migrate deploy` e inicia a aplicação com `npm run start:prod`.
+
+### 🐳 docker-compose.yaml
+
+O `docker-compose.yaml` define três serviços:
+
+1. **postgres**
+   - Utiliza a imagem oficial `postgres:17`.
+   - Define um banco chamado `vorplay` com credenciais personalizadas.
+   - Expõe a porta `5432`.
+   - Armazena os dados em um volume nomeado (`postgres-data`).
+   - Inclui um `healthcheck` para garantir que o banco esteja pronto antes de inicializar os outros serviços.
+
+2. **api**
+   - Constrói a imagem usando o `Dockerfile` local.
+   - Expõe a porta `3000`.
+   - Usa o arquivo `.env` para configurar variáveis de ambiente.
+   - Depende do serviço `postgres` e só inicia quando ele estiver saudável.
+   - `stdin_open` e `tty` são habilitados para facilitar o uso de um terminal interativo (útil em debug).
+
+3. **pgadmin4**
+   - Interface gráfica para o PostgreSQL.
+   - Usa a imagem `dpage/pgadmin4:9.3`.
+   - Configurado com usuário e senha padrão.
+   - Disponível localmente na porta `15432`.
