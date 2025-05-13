@@ -30,7 +30,7 @@ Uma API em NestJS para buscar e gerenciar faixas, artistas e conteúdo de playli
 - [Recursos Avançados](#-recursos-avançados)
   - [Paginação Cursor-Based](#paginação-cursor-based)
   - [Interceptor de Histórico](#interceptor-de-histórico)
-
+- [Arquitetura com Docker](#-arquitetura-com-docker)
 ---
 
 ## 🎯 Sobre
