@@ -114,16 +114,17 @@ O sistema atua como um gateway simplificado:
 O VorPlay API implementa uma arquitetura orientada a serviços que atua como gateway entre clientes e serviços externos:
 
 ```
-┌─────────────┐     ┌────────────┐     ┌───────────────┐
-│  Clientes   │────▶│ VorPlay API│────▶│ Serviços      │
-│  (Frontend) │◀────│ (Gateway)  │◀────│ Externos      │
-└─────────────┘     └────────────┘     └───────────────┘
-              │                    │
-              ▼                    ▼
-          ┌──────────┐        ┌─────────────┐
-          │ Banco de │        │ Spotify API │
-          │ Dados    │        │             │
-          └──────────┘        └─────────────┘
+┌─────────────┐     ┌────────────────┐     ┌───────────────┐     ┌─────────────┐
+│  Clientes   │◀───▶│   VorPlay API  │◀───▶│   Serviços    │◀───▶│ Spotify API │
+│  (Frontend) │     │    (Gateway)   │     │   Externos    │     │             │
+└─────────────┘     └────────────────┘     └───────────────┘     └─────────────┘
+                            ▲
+                            │
+                            ▼
+                     ┌──────────────┐
+                     │  Banco de    │
+                     │   Dados      │
+                     └──────────────┘
 ```
 
 - **Clientes**: Aplicações frontend que consomem a API
