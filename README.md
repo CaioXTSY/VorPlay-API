@@ -21,7 +21,8 @@ Uma API em NestJS para buscar e gerenciar faixas, artistas e conteúdo de playli
 - [Princípios SOA Implementados](#-padrões-de-arquitetura-aplicados)
 - [Padrões de Arquitetura](#-padrões-de-arquitetura-aplicados)
 - [Tecnologias e Frameworks](#-tecnologias-e-bibliotecas)
-- [Configuração e Instalação](#instalação)
+- [Arquitetura com Docker](#-arquitetura-com-docker)
+- [Configuração e Instalação](#instalação-local)
   - [Banco de Dados](#banco-de-dados)
   - [Variáveis de Ambiente](#variáveis-de-ambiente)
   - [Rodando em Dev](#rodando-em-dev)
@@ -30,7 +31,6 @@ Uma API em NestJS para buscar e gerenciar faixas, artistas e conteúdo de playli
 - [Recursos Avançados](#-recursos-avançados)
   - [Paginação Cursor-Based](#paginação-cursor-based)
   - [Interceptor de Histórico](#interceptor-de-histórico)
-- [Arquitetura com Docker](#-arquitetura-com-docker)
 ---
 
 ## 🎯 Sobre
@@ -155,8 +155,75 @@ O VorPlay API implementa uma arquitetura orientada a serviços que atua como gat
 
 ---
 
+## 🔧 Arquitetura com Docker
 
-## Instalação
+Este projeto utiliza Docker para facilitar a execução, desenvolvimento e deploy da aplicação. A seguir, explicamos a lógica por trás do `Dockerfile` e do `docker-compose.yaml`.
+
+### 📦 Dockerfile
+
+O `Dockerfile` está dividido em dois estágios (multistage build), otimizando o tamanho da imagem final e separando a fase de build da fase de execução:
+
+**Stage 1: Build (`builder`)**
+- Baseado em `node:20-alpine`, uma imagem leve do Node.js.
+- Define o diretório de trabalho como `/app`.
+- Copia os arquivos `package*.json` e executa `npm ci` para instalar as dependências.
+- Copia o restante do código-fonte e o arquivo `.env`.
+- Gera o Prisma Client com `npx prisma generate`.
+- Compila o projeto com `npm run build`.
+
+**Stage 2: Produção (`runner`)**
+- Também usa `node:20-alpine` para manter a imagem leve.
+- Apenas as dependências de produção são instaladas com `npm ci --omit=dev`.
+- Copia arquivos essenciais do build: `.env`, `dist/`, `prisma/` e os módulos do Prisma gerados no estágio anterior.
+- O comando de inicialização `CMD` aplica as migrations no banco com `prisma migrate deploy` e inicia a aplicação com `npm run start:prod`.
+
+### 🐳 docker-compose.yaml
+
+O `docker-compose.yaml` define três serviços:
+
+1. **postgres**
+   - Utiliza a imagem oficial `postgres:17`.
+   - Define um banco chamado `vorplay` com credenciais personalizadas.
+   - Expõe a porta `5432`.
+   - Armazena os dados em um volume nomeado (`postgres-data`).
+   - Inclui um `healthcheck` para garantir que o banco esteja pronto antes de inicializar os outros serviços.
+
+2. **api**
+   - Constrói a imagem usando o `Dockerfile` local.
+   - Expõe a porta `3000`.
+   - Usa o arquivo `.env` para configurar variáveis de ambiente.
+   - Depende do serviço `postgres` e só inicia quando ele estiver saudável.
+   - `stdin_open` e `tty` são habilitados para facilitar o uso de um terminal interativo (útil em debug).
+
+3. **pgadmin4**
+   - Interface gráfica para o PostgreSQL.
+   - Usa a imagem `dpage/pgadmin4:9.3`.
+   - Configurado com usuário e senha padrão.
+   - Disponível localmente na porta `15432`.
+
+### ▶️ Executando com Docker
+
+Para subir todos os serviços (API, banco de dados e PgAdmin) com Docker, utilize:
+
+```bash
+# docker compose up --build
+```
+
+- O flag `--build` força a reconstrução da imagem da API.
+- A aplicação estará disponível em: `http://localhost:3000`
+- O pgAdmin pode ser acessado em: `http://localhost:15432`
+
+Para rodar em segundo plano (modo "detached"):
+```bash
+# docker compose up --build -d
+```
+
+Para parar e remover os containers:
+```bash
+# docker compose down
+```
+
+## Instalação Local
 
 ```bash
 git clone https://github.com/CaioXTSY/VorPlay-API.git
@@ -346,49 +413,3 @@ app.useGlobalInterceptors(
   new SearchHistoryInterceptor(app.get(SearchHistoryService)),
 );
 ```
-
-## 🔧 Arquitetura com Docker
-
-Este projeto utiliza Docker para facilitar a execução, desenvolvimento e deploy da aplicação. A seguir, explicamos a lógica por trás do `Dockerfile` e do `docker-compose.yaml`.
-
-### 📦 Dockerfile
-
-O `Dockerfile` está dividido em dois estágios (multistage build), otimizando o tamanho da imagem final e separando a fase de build da fase de execução:
-
-**Stage 1: Build (`builder`)**
-- Baseado em `node:20-alpine`, uma imagem leve do Node.js.
-- Define o diretório de trabalho como `/app`.
-- Copia os arquivos `package*.json` e executa `npm ci` para instalar as dependências.
-- Copia o restante do código-fonte e o arquivo `.env`.
-- Gera o Prisma Client com `npx prisma generate`.
-- Compila o projeto com `npm run build`.
-
-**Stage 2: Produção (`runner`)**
-- Também usa `node:20-alpine` para manter a imagem leve.
-- Apenas as dependências de produção são instaladas com `npm ci --omit=dev`.
-- Copia arquivos essenciais do build: `.env`, `dist/`, `prisma/` e os módulos do Prisma gerados no estágio anterior.
-- O comando de inicialização `CMD` aplica as migrations no banco com `prisma migrate deploy` e inicia a aplicação com `npm run start:prod`.
-
-### 🐳 docker-compose.yaml
-
-O `docker-compose.yaml` define três serviços:
-
-1. **postgres**
-   - Utiliza a imagem oficial `postgres:17`.
-   - Define um banco chamado `vorplay` com credenciais personalizadas.
-   - Expõe a porta `5432`.
-   - Armazena os dados em um volume nomeado (`postgres-data`).
-   - Inclui um `healthcheck` para garantir que o banco esteja pronto antes de inicializar os outros serviços.
-
-2. **api**
-   - Constrói a imagem usando o `Dockerfile` local.
-   - Expõe a porta `3000`.
-   - Usa o arquivo `.env` para configurar variáveis de ambiente.
-   - Depende do serviço `postgres` e só inicia quando ele estiver saudável.
-   - `stdin_open` e `tty` são habilitados para facilitar o uso de um terminal interativo (útil em debug).
-
-3. **pgadmin4**
-   - Interface gráfica para o PostgreSQL.
-   - Usa a imagem `dpage/pgadmin4:9.3`.
-   - Configurado com usuário e senha padrão.
-   - Disponível localmente na porta `15432`.
