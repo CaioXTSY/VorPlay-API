@@ -14,7 +14,7 @@ Uma API em NestJS para buscar e gerenciar faixas, artistas e conteúdo de playli
 - Caio Teixeira da Silva
 - Gustavo Henrique dos Santos Malaquias
 
----
+----
 ## Sumário
 
 - [Visão Geral](#-sobre)
