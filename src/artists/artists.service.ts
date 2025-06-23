@@ -15,6 +15,7 @@ export class ArtistsService {
     cursor = 0,
   ): Promise<{ items: ArtistSummaryDto[]; nextCursor?: number }> {
     try {
+      console.log(`[Artists] Buscando artistas com query: "${query}", limit: ${limit}, cursor: ${cursor}`);
       const raw = await this.spotify.searchArtists(query, limit, cursor);
       const items = raw.map(item => ({
         id: item.id,
@@ -24,16 +25,23 @@ export class ArtistsService {
       }));
       const nextOffset = cursor + items.length;
       const nextCursor = items.length === limit ? nextOffset : undefined;
+      console.log(`[Artists] Encontrados ${items.length} artistas`);
       return { items, nextCursor };
-    } catch {
+    } catch (error) {
+      console.error('[Artists] Erro ao buscar artistas:', error.message);
+      if (error.response) {
+        console.error(`[Artists] Status: ${error.response?.status}, Data:`, error.response?.data);
+      }
       throw new BadGatewayException('Erro ao buscar artistas');
     }
   }
 
   async getInfo(id: string): Promise<ArtistInfoDto> {
     try {
+      console.log(`[Artists] Buscando informações do artista com ID: ${id}`);
       const data = await this.spotify.getArtist(id);
       if (!data) throw new NotFoundException('Artista não encontrado.');
+      console.log(`[Artists] Informações do artista ${data.name} encontradas`);
       return {
         id: data.id,
         name: data.name,
@@ -44,6 +52,10 @@ export class ArtistsService {
         imageUrl: data.images?.[0]?.url,
       };
     } catch (error) {
+      console.error(`[Artists] Erro ao buscar informações do artista ${id}:`, error.message);
+      if (error.response) {
+        console.error(`[Artists] Status: ${error.response?.status}, Data:`, error.response?.data);
+      }
       if (error instanceof NotFoundException) throw error;
       throw new BadGatewayException('Erro ao buscar informações do artista');
     }

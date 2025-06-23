@@ -30,10 +30,21 @@ export class ArtistsController {
     @Query('query') query: string,
     @Query() { cursor = 0, limit }: CursorPaginationDto,
   ): Promise<ArtistCursorPageDto> {
+    console.log(`[ArtistsController] Recebida requisição de busca, query: "${query}", cursor: ${cursor}, limit: ${limit}`);
+    
     if (!query) {
+      console.log('[ArtistsController] Requisição de busca sem query');
       throw new NotFoundException('Parâmetro "query" é obrigatório.');
     }
-    return this.artistsService.searchSummaries(query, limit, cursor);
+    
+    try {
+      const result = await this.artistsService.searchSummaries(query, limit, cursor);
+      console.log(`[ArtistsController] Busca concluída, encontrados ${result.items.length} resultados`);
+      return result;
+    } catch (error) {
+      console.error('[ArtistsController] Erro na busca de artistas:', error.message);
+      throw error;
+    }
   }
 
   @Get(':id')
