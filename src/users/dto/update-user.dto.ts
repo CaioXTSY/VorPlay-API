@@ -16,4 +16,9 @@ export class UpdateUserDto {
   @IsOptional()
   @MinLength(6)
   password?: string;
+
+  @ApiPropertyOptional({ example: 'https://meusite.com/uploads/profile-pictures/123.jpg', description: 'URL da foto de perfil' })
+  @IsOptional()
+  @IsString()
+  profilePicture?: string;
 }

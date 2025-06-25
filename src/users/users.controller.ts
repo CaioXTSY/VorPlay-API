@@ -1,9 +1,17 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Put, Query, Request, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Put, Query, Request, UseGuards, Patch, UseInterceptors, UploadedFile, Req, Res } from "@nestjs/common";
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags, ApiConsumes, ApiBody, ApiProduces } from "@nestjs/swagger";
 import { UsersService } from "./users.service";
 import { AuthGuard } from "@nestjs/passport";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { SearchUsersDto } from './dto/search-users.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+import { Response } from 'express';
+import { createReadStream, existsSync } from 'fs';
+import { join } from 'path';
+import * as crypto from 'crypto';
+const sharp = require('sharp');
 
 @ApiTags('users')
 @Controller('users')
@@ -60,5 +68,83 @@ export class UsersController {
     return this.usersService.findById(id);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({ summary: 'Upload de foto de perfil do usuário logado' })
+  @ApiResponse({ status: 200, description: 'URL da foto de perfil atualizada', schema: { example: { url: '/uploads/profile-pictures/123456789.jpg' } } })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Arquivo de imagem para foto de perfil',
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @Patch('me/profile-picture')
+  @UseInterceptors(FileInterceptor('file', {
+    storage: diskStorage({
+      destination: './uploads/profile-pictures',
+      filename: (req, file, cb) => {
+        // Gera hash SHA256 do conteúdo do arquivo e do timestamp
+        const hash = crypto.createHash('sha256');
+        const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        hash.update(file.originalname + unique);
+        cb(null, hash.digest('hex') + extname(file.originalname));
+      },
+    }),
+    fileFilter: (req, file, cb) => {
+      if (!file.mimetype.match(/^image\/(jpeg|png|jpg|webp)$/)) {
+        return cb(new Error('Apenas imagens são permitidas!'), false);
+      }
+      cb(null, true);
+    },
+    limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+  }))
+  async uploadProfilePicture(@UploadedFile() file: any, @Req() req) {
+    // Caminho do arquivo original
+    const inputPath = file.path;
+    // Gera nome de arquivo webp único
+    const hash = crypto.createHash('sha256');
+    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    hash.update(file.originalname + unique);
+    const webpFilename = hash.digest('hex') + '.webp';
+    const outputPath = join(process.cwd(), 'uploads', 'profile-pictures', webpFilename);
+    // Converte para webp
+    await sharp(inputPath)
+      .webp({ quality: 80 })
+      .toFile(outputPath);
+    // Remove o arquivo original
+    await import('fs').then(fs => fs.unlinkSync(inputPath));
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const url = `${baseUrl}/uploads/profile-pictures/${webpFilename}`;
+    await this.usersService.update(req.user.userId, { profilePicture: url });
+    return { url };
+  }
 
+  @ApiOperation({ summary: 'Obter foto de perfil do usuário por ID' })
+  @ApiProduces('image/jpeg', 'image/png', 'image/webp')
+  @ApiParam({ name: 'id', example: 3, description: 'ID do usuário' })
+  @Get('profile-picture/user/:id')
+  async getProfilePictureByUserId(@Param('id', ParseIntPipe) id: number, @Res() res: Response) {
+    const user = await this.usersService.findById(id);
+    if (!user || !user.profilePicture) {
+      return res.status(404).send('Imagem não encontrada');
+    }
+    // Extrai o nome do arquivo da URL salva
+    const filename = user.profilePicture?.split('/').pop() || '';
+    if (!filename) {
+      return res.status(404).send('Imagem não encontrada');
+    }
+    const filePath = join(process.cwd(), 'uploads', 'profile-pictures', filename);
+    if (!existsSync(filePath)) {
+      return res.status(404).send('Imagem não encontrada');
+    }
+    const stream = createReadStream(filePath);
+    stream.pipe(res);
+  }
 }
