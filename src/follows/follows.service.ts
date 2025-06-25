@@ -13,7 +13,24 @@ import {
     listByUser(followerId: number) {
       return this.prisma.follow.findMany({
         where: { followerId },
-      });
+        include: {
+          targetUser: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              profilePicture: true,
+              createdAt: true,
+            },
+          },
+        },
+      }).then(follows => follows.map(f => {
+        const { targetUser, ...rest } = f as any;
+        return {
+          ...rest,
+          user: targetUser,
+        };
+      }));
     }
   
     listForUser(userId: number) {
@@ -30,10 +47,13 @@ import {
             },
           },
         },
-      }).then(follows => follows.map(f => ({
-        ...f,
-        user: f.targetUser,
-      })));
+      }).then(follows => follows.map(f => {
+        const { targetUser, ...rest } = f as any;
+        return {
+          ...rest,
+          user: targetUser,
+        };
+      }));
     }
   
     async create(followerId: number, dto: CreateFollowDto) {
