@@ -19,7 +19,21 @@ import {
     listForUser(userId: number) {
       return this.prisma.follow.findMany({
         where: { followerId: userId },
-      });
+        include: {
+          targetUser: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              profilePicture: true,
+              createdAt: true,
+            },
+          },
+        },
+      }).then(follows => follows.map(f => ({
+        ...f,
+        user: f.targetUser,
+      })));
     }
   
     async create(followerId: number, dto: CreateFollowDto) {
