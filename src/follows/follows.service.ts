@@ -57,20 +57,18 @@ import {
     }
   
     async create(followerId: number, dto: CreateFollowDto) {
-      if (followerId === dto.targetId) {
+      if (dto.targetType === 'usuario' && followerId === dto.targetId) {
         throw new ConflictException('Você não pode seguir a si mesmo.');
       }
-  
       const dup = await this.prisma.follow.findFirst({
-        where: { followerId, targetId: dto.targetId },
+        where: { followerId, targetId: dto.targetId, targetType: dto.targetType },
       });
-      if (dup) throw new ConflictException('Você já segue esse usuário.');
-  
+      if (dup) throw new ConflictException('Você já segue esse alvo.');
       return this.prisma.follow.create({
         data: {
           followerId,
           targetId: dto.targetId,
-          targetType: 'usuario', // constante
+          targetType: dto.targetType,
         },
       });
     }

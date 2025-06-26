@@ -5,10 +5,12 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class SearchHistoryService {
   constructor(private readonly prisma: PrismaService) {}
 
-  list(userId: number) {
+  list(userId: number, limit = 20, cursor = 0) {
     return this.prisma.searchHistory.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
+      skip: cursor,
+      take: limit,
     });
   }
 

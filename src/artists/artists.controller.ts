@@ -58,9 +58,15 @@ export class ArtistsController {
   @Get(':id/albums')
   @ApiOperation({ summary: 'Álbuns do artista' })
   @ApiParam({ name: 'id', example: '37PZXblQTqpEWGdjctNcGP' })
+  @ApiQuery({ name: 'cursor', required: false, example: 0 })
+  @ApiQuery({ name: 'limit', required: false, example: 20 })
   @ApiResponse({ status: 200, description: 'Lista de álbuns', type: [AlbumSummaryDto] })
-  async albums(@Param('id') id: string): Promise<AlbumSummaryDto[]> {
-    return this.artistsService.getAlbums(id);
+  async albums(
+    @Param('id') id: string,
+    @Query('limit') limit = 20,
+    @Query('cursor') cursor = 0,
+  ): Promise<AlbumSummaryDto[]> {
+    return this.artistsService.getAlbums(id, Number(limit), Number(cursor));
   }
 
   @Get(':id/top-tracks')

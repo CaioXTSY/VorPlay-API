@@ -11,7 +11,6 @@ import { Response } from 'express';
 import { createReadStream, existsSync } from 'fs';
 import { join } from 'path';
 import * as crypto from 'crypto';
-const sharp = require('sharp');
 
 @ApiTags('users')
 @Controller('users')
@@ -94,7 +93,8 @@ export class UsersController {
         const hash = crypto.createHash('sha256');
         const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
         hash.update(file.originalname + unique);
-        cb(null, hash.digest('hex') + extname(file.originalname));
+        const ext = extname(file.originalname);
+        cb(null, hash.digest('hex') + ext);
       },
     }),
     fileFilter: (req, file, cb) => {
@@ -106,22 +106,8 @@ export class UsersController {
     limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
   }))
   async uploadProfilePicture(@UploadedFile() file: any, @Req() req) {
-    // Caminho do arquivo original
-    const inputPath = file.path;
-    // Gera nome de arquivo webp único
-    const hash = crypto.createHash('sha256');
-    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    hash.update(file.originalname + unique);
-    const webpFilename = hash.digest('hex') + '.webp';
-    const outputPath = join(process.cwd(), 'uploads', 'profile-pictures', webpFilename);
-    // Converte para webp
-    await sharp(inputPath)
-      .webp({ quality: 80 })
-      .toFile(outputPath);
-    // Remove o arquivo original
-    await import('fs').then(fs => fs.unlinkSync(inputPath));
     const baseUrl = `${req.protocol}://${req.get('host')}`;
-    const url = `${baseUrl}/uploads/profile-pictures/${webpFilename}`;
+    const url = `${baseUrl}/uploads/profile-pictures/${file.filename}`;
     await this.usersService.update(req.user.userId, { profilePicture: url });
     return { url };
   }

@@ -61,10 +61,11 @@ export class ArtistsService {
     }
   }
 
-  async getAlbums(id: string): Promise<AlbumSummaryDto[]> {
+  async getAlbums(id: string, limit = 20, cursor = 0): Promise<AlbumSummaryDto[]> {
     try {
       const albums = await this.spotify.getArtistAlbums(id);
-      return albums.map(a => ({
+      const paged = albums.slice(cursor, cursor + limit);
+      return paged.map(a => ({
         id: a.id,
         title: a.name,
         imageUrl: a.images?.[0]?.url,

@@ -60,6 +60,7 @@ export class TracksService {
         title: t.name,
         durationMs: t.duration_ms,
         trackNumber: t.track_number,
+        previewUrl: t.preview_url,
       }));
     } catch {
       throw new BadGatewayException('Erro ao buscar faixas do álbum');
