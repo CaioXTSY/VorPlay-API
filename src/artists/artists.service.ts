@@ -71,6 +71,7 @@ export class ArtistsService {
         imageUrl: a.images?.[0]?.url,
         totalTracks: a.total_tracks,
         releaseDate: a.release_date,
+        href: a.external_urls?.spotify || a.href,
       }));
     } catch {
       throw new BadGatewayException('Erro ao buscar álbuns do artista');
@@ -92,7 +93,8 @@ export class ArtistsService {
           width: img.width,
           height: img.height,
         })),
-        href: t.external_urls.spotify,
+        href: t.external_urls?.spotify,
+        previewUrl: t.preview_url || t.external_urls?.spotify,
       }));
     } catch {
       throw new BadGatewayException('Erro ao buscar top tracks do artista');
