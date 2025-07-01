@@ -44,10 +44,20 @@ import {
       return this.prisma.playlist.update({ where: { id }, data: dto });
     }
   
-    async remove(id: number, userId: number) {
-      await this.ensureExists(id, userId);
-      await this.prisma.playlist.delete({ where: { id } });
-    }
+  async remove(id: number, userId: number) {
+    await this.ensureExists(id, userId);
+    
+    // Usa uma transação para garantir que ambas as operações sejam executadas ou nenhuma
+    await this.prisma.$transaction(async (prisma) => {
+      // Primeiro, remove todas as músicas da playlist
+      await prisma.playlistTrack.deleteMany({
+        where: { playlistId: id }
+      });
+      
+      // Depois, remove a playlist
+      await prisma.playlist.delete({ where: { id } });
+    });
+  }
   
     async addTrack(
       playlistId: number,
