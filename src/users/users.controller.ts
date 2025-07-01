@@ -6,16 +6,25 @@ import { UpdateUserDto } from "./dto/update-user.dto";
 import { SearchUsersDto } from './dto/search-users.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { extname, join, resolve } from 'path';
 import { Response } from 'express';
-import { createReadStream, existsSync } from 'fs';
-import { join } from 'path';
+import { createReadStream, existsSync, mkdirSync } from 'fs';
 import * as crypto from 'crypto';
 
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) {
+    // Garante que o diretório de uploads existe
+    this.ensureUploadsDirectory();
+  }
+
+  private ensureUploadsDirectory() {
+    const uploadsPath = resolve(process.env.UPLOADS_PATH || './uploads', 'profile-pictures');
+    if (!existsSync(uploadsPath)) {
+      mkdirSync(uploadsPath, { recursive: true });
+    }
+  }
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
@@ -87,7 +96,7 @@ export class UsersController {
   @Patch('me/profile-picture')
   @UseInterceptors(FileInterceptor('file', {
     storage: diskStorage({
-      destination: './uploads/profile-pictures',
+      destination: resolve(process.env.UPLOADS_PATH || './uploads', 'profile-pictures'),
       filename: (req, file, cb) => {
         // Gera hash SHA256 do conteúdo do arquivo e do timestamp
         const hash = crypto.createHash('sha256');
@@ -126,7 +135,7 @@ export class UsersController {
     if (!filename) {
       return res.status(404).send('Imagem não encontrada');
     }
-    const filePath = join(process.cwd(), 'uploads', 'profile-pictures', filename);
+    const filePath = resolve(process.env.UPLOADS_PATH || './uploads', 'profile-pictures', filename);
     if (!existsSync(filePath)) {
       return res.status(404).send('Imagem não encontrada');
     }

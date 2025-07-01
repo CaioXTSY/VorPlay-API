@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
+import { join, resolve } from 'path';
 
 import { UsersModule } from './users/users.module';
 import { TracksModule } from './tracks/tracks.module';
@@ -21,7 +21,7 @@ import { SpotifyModule } from './integration/spotify.module';
     ConfigModule.forRoot({ isGlobal: true }),
     HttpModule,
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'uploads'),
+      rootPath: resolve(process.env.UPLOADS_PATH || './uploads'),
       serveRoot: '/uploads',
     }),
     UsersModule,
