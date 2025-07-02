@@ -60,7 +60,7 @@ export class TracksService {
         title: t.name,
         durationMs: t.duration_ms,
         trackNumber: t.track_number,
-        previewUrl: t.preview_url,
+        previewUrl: t.preview_url || (t.external_urls ? t.external_urls.spotify : undefined),
       }));
     } catch {
       throw new BadGatewayException('Erro ao buscar faixas do álbum');
