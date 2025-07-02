@@ -99,7 +99,23 @@ export class UsersService {
     }
 
     try {
-      await this.prisma.user.delete({ where: { id: Number(id) } });
+      await this.prisma.$transaction(async (prisma) => {
+        // Remove dependências diretas
+        await prisma.review.deleteMany({ where: { userId: Number(id) } });
+        await prisma.favorite.deleteMany({ where: { userId: Number(id) } });
+        await prisma.searchHistory.deleteMany({ where: { userId: Number(id) } });
+        // Remove follows (seguindo e sendo seguido)
+        await prisma.follow.deleteMany({ where: { followerId: Number(id) } });
+        await prisma.follow.deleteMany({ where: { targetId: Number(id), targetType: 'usuario' } });
+        // Remove playlists e suas tracks
+        const playlists = await prisma.playlist.findMany({ where: { userId: Number(id) }, select: { id: true } });
+        for (const pl of playlists) {
+          await prisma.playlistTrack.deleteMany({ where: { playlistId: pl.id } });
+        }
+        await prisma.playlist.deleteMany({ where: { userId: Number(id) } });
+        // Por fim, remove o usuário
+        await prisma.user.delete({ where: { id: Number(id) } });
+      });
       return { message: 'Usuário removido com sucesso' };
     } catch (error) {
       if (error.code === 'P2025') {
