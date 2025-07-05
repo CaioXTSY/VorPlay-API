@@ -21,6 +21,7 @@ export class TracksService {
         artistNames: item.artists.map(a => a.name),
         albumName: item.album?.name,
         durationMs: item.duration_ms,
+        imageUrl: item.album?.images?.[0]?.url,
         href: item.external_urls.spotify,
       }));
       const nextOffset = cursor + items.length;
@@ -60,6 +61,23 @@ export class TracksService {
         title: t.name,
         durationMs: t.duration_ms,
         trackNumber: t.track_number,
+        artists: t.artists?.map((a: any) => ({
+          id: a.id,
+          name: a.name,
+          externalUrl: a.external_urls?.spotify || '',
+        })) || [],
+        album: t.album ? {
+          id: t.album.id,
+          name: t.album.name,
+          coverUrl: t.album.images?.[0]?.url || '',
+          releaseDate: t.album.release_date || '',
+        } : {
+          id: albumId, // Usa o albumId do parâmetro se não vier no track
+          name: '',
+          coverUrl: '',
+          releaseDate: '',
+        },
+        imageUrl: t.album?.images?.[0]?.url,
         previewUrl: t.preview_url || (t.external_urls ? t.external_urls.spotify : undefined),
       }));
     } catch {

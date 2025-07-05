@@ -20,6 +20,8 @@ export class AlbumTrackDto {
   @ApiProperty({ example: 200040, description: 'Duração em milissegundos' }) durationMs: number;
   @ApiProperty({ type: [ArtistInTrackDto] }) artists: ArtistInTrackDto[];
   @ApiProperty({ type: AlbumInfoDto }) album: AlbumInfoDto;
+  @ApiProperty({ example: 'https://i.scdn.co/image/ab67616d0000b273e0f4f2...' }) 
+  imageUrl?: string;
   @ApiProperty({ example: 'https://p.scdn.co/mp3-preview/...' })
   previewUrl?: string;
 }
