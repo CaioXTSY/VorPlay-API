@@ -15,6 +15,7 @@ import { FollowsModule } from './follows/follows.module';
 import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { SpotifyModule } from './integration/spotify.module';
+import { FeedModule } from './feed/feed.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { SpotifyModule } from './integration/spotify.module';
     SearchHistoryModule,
     FollowsModule,
     AuthModule,
+    FeedModule,
     PrismaModule,
     SpotifyModule,
   ],
