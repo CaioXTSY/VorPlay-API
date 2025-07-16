@@ -9,10 +9,8 @@ export class FeedService {
     private readonly spotify: SpotifyService,
   ) {}
 
-  // Feed de atividades recentes da plataforma para landing page
   async getPublicFeed(limit = 10) {
     const [recentReviews, recentFavorites, recentPlaylists] = await Promise.all([
-      // Reviews mais recentes
       this.prisma.review.findMany({
         take: limit,
         orderBy: { createdAt: 'desc' },
@@ -24,7 +22,6 @@ export class FeedService {
         }
       }),
 
-      // Favoritos mais recentes
       this.prisma.favorite.findMany({
         take: limit,
         orderBy: { createdAt: 'desc' },
@@ -36,7 +33,6 @@ export class FeedService {
         }
       }),
 
-      // Playlists criadas recentemente
       this.prisma.playlist.findMany({
         take: limit,
         orderBy: { createdAt: 'desc' },
@@ -51,7 +47,6 @@ export class FeedService {
       })
     ]);
 
-    // Combinar e ordenar por data
     const activities = [
       ...recentReviews.map(review => ({
         id: `review-${review.id}`,
@@ -91,7 +86,6 @@ export class FeedService {
       .slice(0, limit);
   }
 
-  // Estatísticas gerais da plataforma
   async getPlatformStats() {
     const [
       totalUsers,
@@ -106,17 +100,15 @@ export class FeedService {
       this.prisma.favorite.count(),
       this.prisma.playlist.count(),
       
-      // Top 5 faixas mais bem avaliadas
       this.prisma.review.groupBy({
         by: ['trackId'],
         _avg: { rating: true },
         _count: { rating: true },
-        having: { rating: { _count: { gte: 3 } } }, // Pelo menos 3 avaliações
+        having: { rating: { _count: { gte: 3 } } },
         orderBy: { _avg: { rating: 'desc' } },
         take: 5
       }),
 
-      // Usuários mais ativos (mais reviews)
       this.prisma.review.groupBy({
         by: ['userId'],
         _count: { id: true },
@@ -135,7 +127,6 @@ export class FeedService {
     };
   }
 
-  // Trending - faixas mais favoritadas/avaliadas nas últimas 24h
   async getTrending(limit = 10) {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
@@ -163,7 +154,6 @@ export class FeedService {
       })
     ]);
 
-    // Buscar informações das faixas
     const trendingTrackIds = [...new Set([
       ...recentFavorites.map(f => f.trackId),
       ...recentReviews.map(r => r.trackId)
@@ -188,7 +178,6 @@ export class FeedService {
     }));
   }
 
-  // Descobrir novos artistas - artistas recentemente adicionados
   async getNewArtists(limit = 8) {
     return this.prisma.artist.findMany({
       take: limit,
@@ -204,7 +193,6 @@ export class FeedService {
     });
   }
 
-  // Reviews em destaque - reviews com maior rating e comentários
   async getFeaturedReviews(limit = 5) {
     return this.prisma.review.findMany({
       where: {

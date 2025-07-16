@@ -1,9 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-/**
- * Informações detalhadas de um artista.
- * Inclui `imageUrl` para facilitar o consumo no front‑end.
- */
 export class ArtistInfoDto {
   @ApiProperty({ example: '37PZXblQTqpEWGdjctNcGP' })
   id: string;

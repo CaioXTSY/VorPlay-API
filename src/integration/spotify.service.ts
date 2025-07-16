@@ -16,7 +16,6 @@ export class SpotifyService {
 
   private isTokenExpired(): boolean {
     if (!this.token || !this.tokenExpiry) return true;
-    // Adiciona margem de segurança de 5 minutos
     const now = new Date();
     return now >= this.tokenExpiry;
   }
@@ -64,8 +63,7 @@ export class SpotifyService {
       
       this.token = resp.data.access_token;
       
-      // Definir a expiração do token (geralmente 1 hora para o Spotify)
-      const expiresIn = resp.data.expires_in || 3600; // padrão 1 hora se não informado
+      const expiresIn = resp.data.expires_in || 3600;
       this.tokenExpiry = new Date();
       this.tokenExpiry.setSeconds(this.tokenExpiry.getSeconds() + expiresIn);
       
@@ -109,7 +107,6 @@ export class SpotifyService {
     }, retryCount);
   }
 
-  // Método utilitário para implementar retry
   private async retryOperation<T>(operation: () => Promise<T>, retryCount = 0): Promise<T> {
     try {
       return await operation();
@@ -118,19 +115,17 @@ export class SpotifyService {
       if (error.response) {
         console.error(`[Spotify] Status: ${error.response.status}, Data:`, error.response.data);
         
-        // Log específico para erros 502 Bad Gateway
         if (error.response.status === 502) {
           console.error('[Spotify] Erro 502 Bad Gateway detectado. Esse erro geralmente indica um problema temporário com o serviço da API do Spotify ou problemas de rede.');
         }
       }
       
-      // Tenta novamente se for um erro de rede (como Bad Gateway) e não excedeu tentativas
-      const maxRetries = 2; // Máximo de 3 tentativas (1 original + 2 retries)
+      const maxRetries = 2;
       if (
         retryCount < maxRetries && 
         (error.response?.status === 502 || error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT')
       ) {
-        const waitTime = Math.pow(2, retryCount) * 1000; // Backoff exponencial
+        const waitTime = Math.pow(2, retryCount) * 1000;
         console.log(`[Spotify] Tentando novamente em ${waitTime}ms (tentativa ${retryCount + 1}/${maxRetries})`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
         return this.retryOperation(operation, retryCount + 1);

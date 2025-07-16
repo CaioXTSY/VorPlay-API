@@ -72,7 +72,7 @@ export class TracksService {
           coverUrl: t.album.images?.[0]?.url || '',
           releaseDate: t.album.release_date || '',
         } : {
-          id: albumId, // Usa o albumId do parâmetro se não vier no track
+          id: albumId,
           name: '',
           coverUrl: '',
           releaseDate: '',

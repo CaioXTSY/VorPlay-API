@@ -15,7 +15,6 @@ import * as crypto from 'crypto';
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {
-    // Garante que o diretório de uploads existe
     this.ensureUploadsDirectory();
   }
 
@@ -98,7 +97,6 @@ export class UsersController {
     storage: diskStorage({
       destination: resolve(process.env.UPLOADS_PATH || './uploads', 'profile-pictures'),
       filename: (req, file, cb) => {
-        // Gera hash SHA256 do conteúdo do arquivo e do timestamp
         const hash = crypto.createHash('sha256');
         const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
         hash.update(file.originalname + unique);

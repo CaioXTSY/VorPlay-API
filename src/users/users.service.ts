@@ -24,12 +24,10 @@ export class UsersService {
   }
 
   async findById(id: number | string | undefined): Promise<Pick<User, 'id' | 'name' | 'email' | 'profilePicture' | 'createdAt'>> {
-    // More robust validation for ID
     if (id === undefined || id === null) {
       throw new NotFoundException('ID de usuário não fornecido');
     }
-
-    // Convert to number and validate
+      
     const userId = Number(id);
     if (isNaN(userId) || userId <= 0) {
       throw new NotFoundException('ID de usuário inválido');
@@ -47,17 +45,14 @@ export class UsersService {
 
       return user;
     } catch (error) {
-      // Keep existing error handling but with better type checking
       if (error instanceof NotFoundException) {
         throw error;
       }
 
-      // Specifically handle PrismaClientValidationError
       if (error.name === 'PrismaClientValidationError') {
         throw new BadRequestException('Parâmetros de busca inválidos');
       }
 
-      // For other Prisma-specific errors
       if (error.code) {
         throw new BadRequestException(`Erro ao buscar usuário: ${error.message}`);
       }
@@ -67,7 +62,6 @@ export class UsersService {
   }
 
   async update(id: number, dto: UpdateUserDto): Promise<Pick<User, 'id' | 'name' | 'email' | 'profilePicture' | 'createdAt'>> {
-    // Validate the ID before updating
     if (!id || isNaN(Number(id)) || Number(id) <= 0) {
       throw new NotFoundException('ID de usuário inválido');
     }
@@ -93,27 +87,22 @@ export class UsersService {
   }
 
   async remove(id: number): Promise<{ message: string }> {
-    // Validate the ID before deleting
     if (!id || isNaN(Number(id)) || Number(id) <= 0) {
       throw new NotFoundException('ID de usuário inválido');
     }
 
     try {
       await this.prisma.$transaction(async (prisma) => {
-        // Remove dependências diretas
         await prisma.review.deleteMany({ where: { userId: Number(id) } });
         await prisma.favorite.deleteMany({ where: { userId: Number(id) } });
         await prisma.searchHistory.deleteMany({ where: { userId: Number(id) } });
-        // Remove follows (seguindo e sendo seguido)
         await prisma.follow.deleteMany({ where: { followerId: Number(id) } });
         await prisma.follow.deleteMany({ where: { targetId: Number(id), targetType: 'usuario' } });
-        // Remove playlists e suas tracks
         const playlists = await prisma.playlist.findMany({ where: { userId: Number(id) }, select: { id: true } });
         for (const pl of playlists) {
           await prisma.playlistTrack.deleteMany({ where: { playlistId: pl.id } });
         }
         await prisma.playlist.deleteMany({ where: { userId: Number(id) } });
-        // Por fim, remove o usuário
         await prisma.user.delete({ where: { id: Number(id) } });
       });
       return { message: 'Usuário removido com sucesso' };
@@ -128,12 +117,10 @@ export class UsersService {
   async searchUsers(searchParams: SearchUsersDto): Promise<Pick<User, 'id' | 'name' | 'email' | 'profilePicture' | 'createdAt'>[]> {
     const { query } = searchParams;
 
-    // Se não houver termo de busca, retorna lista vazia
     if (!query) {
       return [];
     }
 
-    // Busca por nome OU email
     try {
       return this.prisma.user.findMany({
         where: {
@@ -151,17 +138,14 @@ export class UsersService {
         }
       });
     } catch (error) {
-      // Keep existing error handling but with better type checking
       if (error instanceof NotFoundException) {
         throw error;
       }
 
-      // Specifically handle PrismaClientValidationError
       if (error.name === 'PrismaClientValidationError') {
         throw new BadRequestException('Parâmetros de busca inválidos');
       }
 
-      // For other Prisma-specific errors
       if (error.code) {
         throw new BadRequestException(`Erro ao buscar usuário: ${error.message}`);
       }

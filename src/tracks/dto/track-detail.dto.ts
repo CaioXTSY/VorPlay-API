@@ -1,9 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-/**
- * Detalhes completos de uma faixa.
- * Estrutura simplificada para refletir o que o `TracksService` devolve.
- */
 export class TrackDetailDto {
   @ApiProperty({ example: '0VjIjW4GlUZAMYd2vXMi3b3l2JHhJ4z3gJvS7rQKZk' })
   id: string;

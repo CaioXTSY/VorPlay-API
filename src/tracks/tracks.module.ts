@@ -5,7 +5,7 @@ import { IntegrationModule } from '../integration/integration.module';
 
 @Module({
   imports: [
-    IntegrationModule,   // ← aqui
+    IntegrationModule,
   ],
   controllers: [TracksController],
   providers: [TracksService],
