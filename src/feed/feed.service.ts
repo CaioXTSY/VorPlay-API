@@ -51,7 +51,7 @@ export class FeedService {
       ...recentReviews.map(review => ({
         id: `review-${review.id}`,
         type: 'review',
-        action: 'avaliou',
+        action: 'reviewed',
         user: review.user,
         track: review.track,
         rating: review.rating,
@@ -61,7 +61,7 @@ export class FeedService {
       ...recentFavorites.map(favorite => ({
         id: `favorite-${favorite.id}`,
         type: 'favorite',
-        action: 'favoritou',
+        action: 'favorited',
         user: favorite.user,
         track: favorite.track,
         createdAt: favorite.createdAt
@@ -69,7 +69,7 @@ export class FeedService {
       ...recentPlaylists.map(playlist => ({
         id: `playlist-${playlist.id}`,
         type: 'playlist',
-        action: 'criou a playlist',
+        action: 'created playlist',
         user: playlist.user,
         playlist: {
           id: playlist.id,
