@@ -1,7 +1,12 @@
-# 🎵 Vorplay API
+# 🎵 VorPlay API
 
-Uma API em NestJS para buscar e gerenciar faixas, artistas e conteúdo de playlists usando Spotify, implementada com padrões de arquitetura orientada a serviços.
+Uma API em NestJS para buscar e gerenciar faixas, artistas e conteúdo de playlists usando Spotify e Deezer, implementada com padrões de arquitetura orientada a serviços.
 
+## 🗄️ Diagrama do Banco de Dados
+
+![Diagrama UML do Banco de Dados](readme_helper/prisma-uml.png)
+
+*Diagrama UML gerado automaticamente pelo Prisma mostrando as relações entre as entidades do sistema.*
 
 ## 📚 Informações Acadêmicas
 
@@ -17,8 +22,9 @@ Uma API em NestJS para buscar e gerenciar faixas, artistas e conteúdo de playli
 ---
 ## Sumário
 
+- [Diagrama do Banco de Dados](#-diagrama-do-banco-de-dados)
 - [Visão Geral](#-sobre)
-- [Princípios SOA Implementados](#-padrões-de-arquitetura-aplicados)
+- [Princípios SOA Implementados](#-princípios-soa-implementados)
 - [Padrões de Arquitetura](#-padrões-de-arquitetura-aplicados)
 - [Tecnologias e Frameworks](#-tecnologias-e-bibliotecas)
 - [Configuração e Instalação](#instalação)
@@ -28,6 +34,9 @@ Uma API em NestJS para buscar e gerenciar faixas, artistas e conteúdo de playli
 - [Documentação da API](#documentação-swagger)
   - [Endpoints](#endpoints)
 - [Recursos Avançados](#-recursos-avançados)
+  - [Upload de Imagens](#upload-de-imagens)
+  - [Feed Público](#feed-público)
+  - [Sistema de Integração Dupla](#sistema-de-integração-dupla)
   - [Paginação Cursor-Based](#paginação-cursor-based)
   - [Interceptor de Histórico](#interceptor-de-histórico)
 
@@ -37,8 +46,11 @@ Uma API em NestJS para buscar e gerenciar faixas, artistas e conteúdo de playli
 
 O VorPlay API é um sistema orientado a serviços que:
 
-- Integra-se com a API do Spotify para obtenção de dados musicais
+- Integra-se com APIs externas (Spotify) para obtenção de dados musicais
 - Oferece gerenciamento completo de usuários, playlists e interações sociais
+- Implementa um sistema de feed público e estatísticas da plataforma
+- Suporte para upload de fotos de perfil e gerenciamento de favoritos
+- Sistema de reviews e avaliações de faixas musicais
 - Implementa padrões arquiteturais SOA para desacoplamento e reusabilidade
 - Fornece endpoints RESTful para interações cliente-servidor
 
@@ -131,7 +143,7 @@ O VorPlay API implementa uma arquitetura orientada a serviços que atua como gat
 - **VorPlay API**: Gateway central que gerencia autenticação, roteamento e integração
 - **Banco de Dados**: Armazena dados de usuários, playlists, avaliações e histórico
 - **Serviços Externos**: Integrações com APIs externas, principalmente o Spotify
-## 🛠️ Tecnologias e Bibliotecas
+### 🛠️ Tecnologias e Bibliotecas
 
 ### Core
 - **NestJS**: Framework backend com arquitetura modular
@@ -149,9 +161,17 @@ O VorPlay API implementa uma arquitetura orientada a serviços que atua como gat
 - **class-validator**: Validação de DTOs
 - **class-transformer**: Transformação de objetos
 
+### Upload e Processamento
+- **Multer**: Middleware para upload de arquivos
+- **Sharp**: Processamento de imagens
+
 ### Documentação
 - **Swagger/OpenAPI**: Documentação interativa
 - **ReDoc**: Documentação alternativa
+
+### Integração com APIs Externas
+- **Spotify API**: Busca de músicas, artistas e álbuns
+- **Deezer API**: Serviço alternativo de música (em desenvolvimento)
 
 ---
 
@@ -182,6 +202,7 @@ SPOTIFY_CLIENT_ID="..."
 SPOTIFY_CLIENT_SECRET="..."
 SPOTIFY_TOKEN_URL="https://accounts.spotify.com/api/token"
 SPOTIFY_API_URL="https://api.spotify.com/v1"
+UPLOADS_PATH="./uploads"  # Caminho para armazenar uploads (opcional)
 ```
 
 ---
@@ -216,14 +237,16 @@ Acesse `http://localhost:3000/api`.
 
 > _Bearer JWT_
 
-| Método | Rota          | Body / Params                     | Retorno               |
-| ------ | ------------- | --------------------------------- | --------------------- |
-| GET    | `/users/me`   | –                                 | Perfil do usuário    |
-| PUT    | `/users/me`   | `{ name?, email?, password? }`    | Perfil atualizado     |
-| DELETE | `/users/me`   | –                                 | Conta removida        |
-| GET    | `/users`      | –                                 | Lista de usuários     |
-| GET    | `/users/{id}` | `:id`                             | Usuário por ID        |
-| GET    | `/users/search`| `nome,email`                      | Lista de usuários |
+| Método | Rota                           | Body / Params                     | Retorno               |
+| ------ | ------------------------------ | --------------------------------- | --------------------- |
+| GET    | `/users/me`                    | –                                 | Perfil do usuário     |
+| PUT    | `/users/me`                    | `{ name?, email?, password? }`    | Perfil atualizado     |
+| DELETE | `/users/me`                    | –                                 | Conta removida        |
+| GET    | `/users`                       | –                                 | Lista de usuários     |
+| GET    | `/users/{id}`                  | `:id`                             | Usuário por ID        |
+| GET    | `/users/search`                | `?query=nome`                     | Lista de usuários     |
+| PATCH  | `/users/me/profile-picture`    | `file: image`                     | URL da foto           |
+| GET    | `/users/profile-picture/user/{id}` | `:id`                        | Imagem do perfil      |
 
 ### Faixas
 
@@ -284,11 +307,19 @@ Acesse `http://localhost:3000/api`.
 
 > _Bearer JWT_
 
-| Método | Rota                         | Descrição                     |
-| ------ | ---------------------------- | ----------------------------- |
-| GET    | `/search-history`            | Lista histórico do usuário    |
-| DELETE | `/search-history`            | Limpa todo histórico          |
-| DELETE | `/search-history/{id}`       | Remove item específico        |
+| Método | Rota                         | Body                    | Retorno              |
+| ------ | ---------------------------- | ----------------------- | -------------------- |
+| GET    | `/search-history`            | –                       | Lista histórico      |
+| POST   | `/search-history`            | `{ query }`             | Item adicionado      |
+| DELETE | `/search-history`            | –                       | Todo histórico limpo |
+| DELETE | `/search-history/{id}`       | `:id`                   | Item removido        |
+
+### Feed
+
+| Método | Rota           | Query                           | Retorno                |
+| ------ | -------------- | ------------------------------- | ---------------------- |
+| GET    | `/feed/public` | `?limit=10`                     | `PublicFeedDto[]`      |
+| GET    | `/feed/stats`  | –                               | `PlatformStatsDto`     |
 
 ### Follows
 
@@ -299,7 +330,7 @@ Acesse `http://localhost:3000/api`.
 | GET    | `/follows`               | –                           | `FollowDto[]`  |
 | POST   | `/follows`               | `{ targetType, targetId }`  | `FollowDto`    |
 | DELETE | `/follows/{id}`          | `:id`                       | –              |
-| GET    | `/follows/user/{userId}` | `:userId`                   | `FollowDto[]`  |
+| GET    | `/follows/user/{id}`     | `:id`                       | `FollowDto[]`  |
 
 ## 🔍 Recursos Avançados
 
@@ -321,28 +352,46 @@ O sistema implementa diversos interceptores para aspectos transversais:
 
 ## Interceptor de Histórico
 
-O interceptor registra cada busca de faixas e artistas:
+O interceptor registra automaticamente cada busca de faixas e artistas:
 
-```ts
-// src/common/interceptors/search-history.interceptor.ts
-intercept(ctx, next) {
-  const req = ctx.switchToHttp().getRequest();
-  const user = req.user;
-  const query = req.query.query;
-  return next.handle().pipe(
-    tap(() => {
-      if (user && query) {
-        this.historyService.logSearch(user.id, query);
+```typescript
+// src/searchHistory/search-history.interceptor.ts
+intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  const req = context.switchToHttp().getRequest();
+  const url: string = req.originalUrl ?? '';
+
+  const isSearch =
+    url.startsWith('/api/v1/tracks/search') ||
+    url.startsWith('/api/v1/artists/search');
+
+  if (isSearch) {
+    let userId: number | undefined;
+
+    if (req.user?.userId) {
+      userId = req.user.userId;
+    } else {
+      // Extrai userId do token JWT se não estiver no request
+      const auth = (req.headers.authorization as string) ?? '';
+      if (auth.startsWith('Bearer ')) {
+        try {
+          const payload: any = this.jwt.verify(auth.slice(7), {
+            secret: this.config.get('JWT_SECRET') || 'changeme',
+          });
+          userId = payload.sub;
+        } catch {
+          // Token inválido, ignora
+        }
       }
-    }),
-  );
+    }
+
+    if (userId) {
+      const q = req.query?.query as string;
+      this.history.record(userId, q).catch(() => void 0);
+    }
+  }
+
+  return next.handle();
 }
 ```
 
-Aplicado globalmente em `main.ts`:
-
-```ts
-app.useGlobalInterceptors(
-  new SearchHistoryInterceptor(app.get(SearchHistoryService)),
-);
-```
+Aplicado automaticamente em rotas de busca para usuários autenticados.
