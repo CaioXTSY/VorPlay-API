@@ -34,6 +34,9 @@ export class ReviewDto {
   @ApiProperty({ description: 'Nome do usuário que comentou' })
   userName: string;
 
+  @ApiProperty({ description: 'Foto de perfil do usuário que comentou', nullable: true })
+  profilePicture?: string | null;
+
   @ApiProperty({ description: 'Data em que o review foi criado' })
   createdAt: Date;
 }

@@ -96,6 +96,7 @@ export class ReviewsController {
       comment: r.comment,
       userId: r.user.id,
       userName: r.user.name,
+      profilePicture: r.user.profilePicture ?? null,
       createdAt: r.createdAt,
     }));
   }
@@ -142,6 +143,7 @@ export class ReviewsController {
       comment: r.comment,
       userId: r.user.id,
       userName: r.user.name,
+      profilePicture: r.user.profilePicture ?? null,
       createdAt: r.createdAt,
     }));
   }
@@ -176,6 +178,7 @@ export class ReviewsController {
       comment: r.comment,
       userId: r.user.id,
       userName: r.user.name,
+      profilePicture: r.user.profilePicture ?? null,
       createdAt: r.createdAt,
     }));
   }

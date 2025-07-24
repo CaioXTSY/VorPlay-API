@@ -7,10 +7,10 @@ import {
   import { SpotifyService } from 'src/integration/spotify.service';
   import { ExternalProvider, Review, Track } from '@prisma/client';
   
-  type ReviewWithTrackAndUserName = Review & {
-    track: Track;
-    user: { id: number; name: string };
-  };
+type ReviewWithTrackAndUserName = Review & {
+  track: Track;
+  user: { id: number; name: string; profilePicture?: string | null };
+};
   
   @Injectable()
   export class ReviewsService {
@@ -66,7 +66,7 @@ import {
         },
         include: {
           track: true,
-          user: { select: { id: true, name: true } },
+          user: { select: { id: true, name: true, profilePicture: true } },
         },
       });
     }
@@ -86,7 +86,7 @@ import {
         orderBy: { createdAt: 'desc' },
         include: {
           track: true,
-          user: { select: { id: true, name: true } },
+          user: { select: { id: true, name: true, profilePicture: true } },
         },
       });
     }
@@ -112,7 +112,7 @@ import {
         orderBy: { createdAt: 'desc' },
         include: {
           track: true,
-          user: { select: { id: true, name: true } },
+          user: { select: { id: true, name: true, profilePicture: true } },
         },
       });
     }
