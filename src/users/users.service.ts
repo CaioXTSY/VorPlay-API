@@ -153,4 +153,33 @@ export class UsersService {
       throw new BadRequestException('Erro ao processar solicitação');
     }
   }
+
+  async updateResetToken(id: number, resetToken: string, resetExpires: Date): Promise<void> {
+    await this.prisma.user.update({
+      where: { id },
+      data: {
+        resetPasswordToken: resetToken,
+        resetPasswordExpires: resetExpires,
+      },
+    });
+  }
+
+  async findByResetToken(token: string): Promise<User | null> {
+    return this.prisma.user.findFirst({
+      where: {
+        resetPasswordToken: token,
+      },
+    });
+  }
+
+  async updatePassword(id: number, hashedPassword: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id },
+      data: {
+        password: hashedPassword,
+        resetPasswordToken: null,
+        resetPasswordExpires: null,
+      },
+    });
+  }
 }

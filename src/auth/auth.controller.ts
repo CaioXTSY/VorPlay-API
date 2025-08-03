@@ -9,6 +9,8 @@ import {
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
 class AuthResponse {
@@ -20,6 +22,11 @@ class AuthResponse {
 
   @ApiProperty({ example: { id: 1, email: 'caio@exemplo.com' } })
   user: { id: number; email: string };
+}
+
+class MessageResponse {
+  @ApiProperty({ example: 'Operação realizada com sucesso' })
+  message: string;
 }
 
 @ApiTags('auth')
@@ -51,5 +58,20 @@ export class AuthController {
   @Post('validate')
   async validateToken(@Request() req): Promise<AuthResponse> {
     return this.authService.generateToken(req.user.sub, req.user.email);
+  }
+
+  @ApiOperation({ summary: 'Solicitar recuperação de senha' })
+  @ApiResponse({ status: 200, description: 'Email de recuperação enviado', type: MessageResponse })
+  @Post('forgot-password')
+  async forgotPassword(@Body() dto: ForgotPasswordDto): Promise<MessageResponse> {
+    return this.authService.forgotPassword(dto.email);
+  }
+
+  @ApiOperation({ summary: 'Redefinir senha com token' })
+  @ApiResponse({ status: 200, description: 'Senha alterada com sucesso', type: MessageResponse })
+  @ApiResponse({ status: 400, description: 'Token inválido ou expirado' })
+  @Post('reset-password')
+  async resetPassword(@Body() dto: ResetPasswordDto): Promise<MessageResponse> {
+    return this.authService.resetPassword(dto.token, dto.newPassword);
   }
 }
