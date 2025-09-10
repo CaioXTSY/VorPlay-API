@@ -31,7 +31,7 @@ import {
           },
         },
       });
-      if (!playlist) throw new NotFoundException('Playlist não encontrada');
+      if (!playlist) throw new NotFoundException('Playlist not found');
       return playlist;
     }
   
@@ -47,14 +47,11 @@ import {
   async remove(id: number, userId: number) {
     await this.ensureExists(id, userId);
     
-    // Usa uma transação para garantir que ambas as operações sejam executadas ou nenhuma
     await this.prisma.$transaction(async (prisma) => {
-      // Primeiro, remove todas as músicas da playlist
       await prisma.playlistTrack.deleteMany({
         where: { playlistId: id }
       });
       
-      // Depois, remove a playlist
       await prisma.playlist.delete({ where: { id } });
     });
   }
@@ -75,7 +72,7 @@ import {
   
       if (!track) {
         if (dto.externalProvider !== ExternalProvider.Spotify)
-          throw new ConflictException('Apenas Spotify suportado no momento');
+          throw new ConflictException('Only Spotify supported at the moment');
   
         const data = await this.spotify.getTrack(dto.externalId);
         track = await this.prisma.track.create({
@@ -93,7 +90,7 @@ import {
       const dup = await this.prisma.playlistTrack.findFirst({
         where: { playlistId, trackId: track.id },
       });
-      if (dup) throw new ConflictException('Faixa já existe na playlist');
+      if (dup) throw new ConflictException('Track already exists in playlist');
   
       const last = await this.prisma.playlistTrack.aggregate({
         where: { playlistId },
@@ -126,7 +123,7 @@ import {
   
     private async ensureExists(id: number, userId: number) {
       const ok = await this.prisma.playlist.findFirst({ where: { id, userId } });
-      if (!ok) throw new NotFoundException('Playlist não encontrada');
+      if (!ok) throw new NotFoundException('Playlist not found');
     }
   }
   
