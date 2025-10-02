@@ -153,33 +153,36 @@ export class ReviewsController {
   @ApiParam({ name: 'externalId', description: 'ID da faixa no Spotify' })
   @ApiResponse({ status: 200, description: 'Lista de reviews da faixa.', type: [ReviewDto] })
   @ApiBadRequestResponse({ description: 'Spotify ID inválido.' })
-  @ApiResponse({ status: 404, description: 'Nenhum review encontrado para essa faixa.' })
   async listBySpotifyId(@Param('externalId') externalId: string): Promise<ReviewDto[]> {
     if (!externalId) {
       throw new BadRequestException('É necessário informar o Spotify ID da faixa');
     }
 
-    const track = await this.reviewsService.getTrackByExternalId(externalId);
-    const revs = await this.reviewsService.listByTrack(track.id);
+    try {
+      const track = await this.reviewsService.getTrackByExternalId(externalId);
+      const revs = await this.reviewsService.listByTrack(track.id);
 
-    if (revs.length === 0) {
-      throw new NotFoundException(`Nenhum review encontrado para a faixa (Spotify ID: ${externalId})`);
+      return revs.map(r => ({
+        id: r.id,
+        trackId: r.track.id,
+        externalId: r.track.externalId,
+        title: r.track.title,
+        artist: r.track.artist,
+        album: r.track.album,
+        coverUrl: r.track.coverUrl,
+        rating: r.rating,
+        comment: r.comment,
+        userId: r.user.id,
+        userName: r.user.name,
+        profilePicture: r.user.profilePicture ?? null,
+        createdAt: r.createdAt,
+      }));
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        // Se a faixa não existe no banco, retorna lista vazia
+        return [];
+      }
+      throw error;
     }
-
-    return revs.map(r => ({
-      id: r.id,
-      trackId: r.track.id,
-      externalId: r.track.externalId,
-      title: r.track.title,
-      artist: r.track.artist,
-      album: r.track.album,
-      coverUrl: r.track.coverUrl,
-      rating: r.rating,
-      comment: r.comment,
-      userId: r.user.id,
-      userName: r.user.name,
-      profilePicture: r.user.profilePicture ?? null,
-      createdAt: r.createdAt,
-    }));
   }
 }
