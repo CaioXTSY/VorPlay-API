@@ -29,23 +29,19 @@ Este projeto foi desenvolvido e utilizado em duas disciplinas:
 ---
 ## Sumário
 
-- [Diagrama do Banco de Dados](#-diagrama-do-banco-de-dados)
-- [Visão Geral](#-sobre)
-- [Princípios SOA Implementados](#-princípios-soa-implementados)
-- [Padrões de Arquitetura](#-padrões-de-arquitetura-aplicados)
-- [Tecnologias e Frameworks](#-tecnologias-e-bibliotecas)
-- [Configuração e Instalação](#instalação)
-  - [Banco de Dados](#banco-de-dados)
-  - [Variáveis de Ambiente](#variáveis-de-ambiente)
-  - [Rodando em Dev](#rodando-em-dev)
-- [Documentação da API](#documentação-swagger)
-  - [Endpoints](#endpoints)
-- [Recursos Avançados](#-recursos-avançados)
-  - [Upload de Imagens](#upload-de-imagens)
-  - [Feed Público](#feed-público)
-  - [Sistema de Integração Dupla](#sistema-de-integração-dupla)
-  - [Paginação Cursor-Based](#paginação-cursor-based)
-  - [Interceptor de Histórico](#interceptor-de-histórico)
+- [📚 Informações Acadêmicas](#-informações-acadêmicas)
+- [🗄️ Diagrama do Banco de Dados](#-diagrama-do-banco-de-dados)
+- [🎯 Sobre](#-sobre)
+- [🔄 Princípios SOA Implementados](#-princípios-soa-implementados)
+- [🏗️ Padrões de Arquitetura Aplicados](#-padrões-de-arquitetura-aplicados)
+- [🏛️ Arquitetura do Sistema](#-arquitetura-do-sistema)
+- [🛠️ Tecnologias e Bibliotecas](#-tecnologias-e-bibliotecas)
+- [⚙️ Instalação](#instalação)
+- [🚀 Rodando em Dev](#rodando-em-dev)
+- [📋 Documentação Swagger](#documentação-swagger)
+- [🌐 Endpoints](#endpoints)
+- [🔍 Outros Recursos](#-outros-recursos)
+- [📖 Documentação Adicional](#-documentação-adicional)
 
 ---
 
@@ -477,38 +473,12 @@ npx prisma migrate status
 
 ---
 
-## 🐛 Troubleshooting
-
-### Problemas Comuns
-
-**Erro de conexão com Spotify:**
-- Verificar `SPOTIFY_CLIENT_ID` e `SPOTIFY_CLIENT_SECRET`
-- Verificar URLs da API do Spotify
-- Logs: buscar por `[Spotify]` nos logs
-
-**Problemas de email:**
-- Verificar configuração Gmail App Password
-- Verificar `MAIL_USERNAME` e `MAIL_PASSWORD`
-- Testar conectividade SMTP
-
-**Erro de upload de imagens:**
-- Verificar permissões da pasta `./uploads/`
-- Verificar `UPLOADS_PATH` configurado
-- Limites de tamanho de arquivo
-
-**Performance do banco:**
-- Verificar índices nas tabelas (definidos no Prisma)
-- Monitorar queries lentas
-- Considerar connection pooling
-
----
-
 ## 📖 Documentação Adicional
 
 ### APIs Disponíveis
 
-- **Swagger UI**: `http://localhost:3000/api/v1/docs` (interativa)
-- **ReDoc**: `http://localhost:3000/api/v1/redoc` (alternativa)
+- **Swagger UI**: `http://localhost:3000/api/v1/docs`
+- **ReDoc**: `http://localhost:3000/api/v1/redoc`
 - **JSON Schema**: `http://localhost:3000/api/v1/swagger.json`
 
 ### Estrutura do Banco de Dados
