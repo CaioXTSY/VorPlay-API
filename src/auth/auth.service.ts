@@ -51,18 +51,14 @@ export class AuthService {
   async forgotPassword(email: string): Promise<{ message: string }> {
     const user = await this.usersService.findByEmail(email);
     if (!user) {
-      // Por segurança, não revelamos se o email existe ou não
       return { message: 'Se o email existir em nossa base, você receberá um link de recuperação.' };
     }
 
-    // Gera token aleatório para reset
     const resetToken = crypto.randomBytes(32).toString('hex');
     const resetExpires = new Date(Date.now() + 3600000); // 1 hora
 
-    // Salva o token no banco
     await this.usersService.updateResetToken(user.id, resetToken, resetExpires);
 
-    // Envia email
     await this.emailService.sendPasswordResetEmail(email, resetToken);
 
     return { message: 'Se o email existir em nossa base, você receberá um link de recuperação.' };
@@ -74,15 +70,12 @@ export class AuthService {
       throw new BadRequestException('Token inválido ou expirado');
     }
 
-    // Verifica se o token não expirou
     if (!user.resetPasswordExpires || user.resetPasswordExpires < new Date()) {
       throw new BadRequestException('Token expirado');
     }
 
-    // Hash da nova senha
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Atualiza a senha e remove o token
     await this.usersService.updatePassword(user.id, hashedPassword);
 
     return { message: 'Senha alterada com sucesso' };

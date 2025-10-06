@@ -177,9 +177,9 @@ export class ReviewsController {
         profilePicture: r.user.profilePicture ?? null,
         createdAt: r.createdAt,
       }));
+      
     } catch (error) {
       if (error instanceof NotFoundException) {
-        // Se a faixa não existe no banco, retorna lista vazia
         return [];
       }
       throw error;

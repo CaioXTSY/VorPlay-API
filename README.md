@@ -1,6 +1,6 @@
 # 🎵 VorPlay API
 
-Uma API em NestJS para buscar e gerenciar faixas, artistas e conteúdo de playlists usando Spotify e Deezer, implementada com padrões de arquitetura orientada a serviços.
+Uma API em NestJS para buscar e gerenciar faixas, artistas e conteúdo de playlists usando Spotify, implementada com padrões de arquitetura orientada a serviços.
 
 ## 🗄️ Diagrama do Banco de Dados
 
@@ -171,7 +171,6 @@ O VorPlay API implementa uma arquitetura orientada a serviços que atua como gat
 
 ### Integração com APIs Externas
 - **Spotify API**: Busca de músicas, artistas e álbuns
-- **Deezer API**: Serviço alternativo de música (em desenvolvimento)
 
 ---
 
