@@ -10,14 +10,21 @@ Uma API em NestJS para buscar e gerenciar faixas, artistas e conteúdo de playli
 
 ## 📚 Informações Acadêmicas
 
-### Disciplina
-- **Nome:** Computação Orientada a Serviços
+### Disciplinas
+Este projeto foi desenvolvido e utilizado em duas disciplinas:
+
+#### 1. Computação Orientada a Serviços
 - **Professor:** Tercio de Morais
-- **Instituição:** Universidade Federal de Alagoas (UFAL) - Campus Arapiraca
+- **Foco:** Implementação de padrões SOA e arquitetura orientada a serviços
+
+#### 2. Desenvolvimento de Software para Web
+- **Professor:** Alexandre de Andrade Barbosa
+- **Foco:** Desenvolvimento web moderno com NestJS e integração de APIs
+
+**Instituição:** Universidade Federal de Alagoas (UFAL) - Campus Arapiraca
 
 ### 👨‍💻 Equipe
 - Caio Teixeira da Silva
-- Gustavo Henrique dos Santos Malaquias
 
 ---
 ## Sumário
@@ -126,10 +133,10 @@ O sistema atua como um gateway simplificado:
 O VorPlay API implementa uma arquitetura orientada a serviços que atua como gateway entre clientes e serviços externos:
 
 ```
-┌─────────────┐     ┌────────────────┐     ┌───────────────┐     ┌─────────────┐
-│  Clientes   │◀───▶│   VorPlay API  │◀───▶│   Serviços    │◀───▶│ Spotify API │
-│  (Frontend) │     │    (Gateway)   │     │   Externos    │     │             │
-└─────────────┘     └────────────────┘     └───────────────┘     └─────────────┘
+┌─────────────┐     ┌────────────────┐     ┌───────────────┐       ┌─────────────┐
+│  Clientes   │◀───▶│   VorPlay API  │◀───▶│   Serviços  │◀───▶│ Spotify API  │
+│  (Frontend) │     │    (Gateway)   │     │   Externos    │       │             │
+└─────────────┘     └────────────────┘     └───────────────┘       └─────────────┘
                             ▲
                             │
                             ▼
@@ -192,15 +199,44 @@ npm install
    npx prisma generate
    ```
 
+### ✉️ Configuração de Email
+
+O sistema implementa recuperação de senha por email usando Gmail SMTP:
+
+1. **Gmail App Password**: Para usar Gmail, você precisa gerar uma "Senha de App":
+   - Acesse [myaccount.google.com](https://myaccount.google.com)
+   - Vá em "Segurança" → "Verificação em duas etapas" → "Senhas de app"
+   - Gere uma nova senha para "VorPlay API"
+   - Use essa senha na variável `MAIL_PASSWORD`
+
+2. **Template de Email**: O sistema envia emails com template HTML responsivo incluindo:
+   - Logo da empresa (`media/vorp.jpg`)
+   - Link de recuperação com token de 1 hora de validade
+   - Design moderno e profissional
+
 ### Variáveis de Ambiente
 
 ```dotenv
+# Banco de Dados
 DATABASE_URL="mysql://user:pass@host:3306/dbname"
-JWT_SECRET="uma-chave-secreta"
-SPOTIFY_CLIENT_ID="..."
-SPOTIFY_CLIENT_SECRET="..."
+
+# JWT Authentication
+JWT_SECRET="uma-chave-secreta-super-segura"
+
+# Spotify Integration
+SPOTIFY_CLIENT_ID="seu_client_id_do_spotify"
+SPOTIFY_CLIENT_SECRET="seu_client_secret_do_spotify"
 SPOTIFY_TOKEN_URL="https://accounts.spotify.com/api/token"
 SPOTIFY_API_URL="https://api.spotify.com/v1"
+
+# Email Configuration (para recuperação de senha)
+MAIL_USERNAME="seu_email@gmail.com"
+MAIL_PASSWORD="sua_senha_do_email_ou_app_password"
+
+# Frontend URL (para links de recuperação)
+FRONTEND_URL="http://localhost:3000"
+
+# Uploads
 UPLOADS_PATH="./uploads"  # Caminho para armazenar uploads (opcional)
 ```
 
@@ -213,6 +249,35 @@ npm run start:dev
 ```
 
 Servidor em `http://localhost:3000`.
+
+### 🧪 Executando Testes
+
+```bash
+# Executar todos os testes
+npm run test
+
+# Executar testes em modo watch
+npm run test:watch
+
+# Executar testes com coverage
+npm run test:cov
+
+# Executar testes e2e
+npm run test:e2e
+
+# Debug de testes
+npm run test:debug
+```
+
+### 📦 Build para Produção
+
+```bash
+# Gerar build
+npm run build
+
+# Executar versão de produção
+npm run start:prod
+```
 
 ---
 
@@ -320,6 +385,14 @@ Acesse `http://localhost:3000/api`.
 | GET    | `/feed/public` | `?limit=10`                     | `PublicFeedDto[]`      |
 | GET    | `/feed/stats`  | –                               | `PlatformStatsDto`     |
 
+**Estatísticas da Plataforma (`/feed/stats`):**
+- Total de usuários registrados
+- Total de reviews criados
+- Total de faixas favoritadas  
+- Total de playlists criadas
+- Número de faixas top rated (média ≥ 4)
+- Número de usuários mais ativos
+
 ### Follows
 
 > _Bearer JWT_
@@ -331,9 +404,37 @@ Acesse `http://localhost:3000/api`.
 | DELETE | `/follows/{id}`          | `:id`                       | –              |
 | GET    | `/follows/user/{id}`     | `:id`                       | `FollowDto[]`  |
 
-## 🔍 Recursos Avançados
+## 🔍 Outros Recursos
 
-### Paginação Cursor-Based
+### 📷 Upload de Imagens
+
+Sistema de upload de fotos de perfil:
+
+- **Validação**: Apenas arquivos de imagem são aceitos
+- **Processamento**: Redimensionamento automático com Sharp
+- **Armazenamento**: Arquivos salvos em `./uploads/profile-pictures/`
+- **Serving**: Imagens servidas estaticamente via `/uploads/`
+- **Segurança**: Validação de tipos MIME e tamanho
+
+### 📊 Feed Público
+
+Feed em tempo real para landing page:
+
+- **Atividades**: Reviews, favoritos e criação de playlists
+- **Agregação**: Combina múltiplas fontes de dados
+- **Performance**: Otimizado com queries paralelas
+- **Paginação**: Limitado a 50 itens por requisição
+
+### 🔗 Sistema de Integração Dupla
+
+Arquitetura híbrida com dados locais e externos:
+
+- **Cache Local**: Tracks e artistas são cachados no banco local
+- **Upsert Pattern**: Atualização inteligente de dados do Spotify
+- **Fallback**: Sistema de retry para APIs externas indisponíveis
+- **Sincronização**: Metadados sempre atualizados do Spotify
+
+### 📄 Paginação Cursor-Based
 
 A API utiliza um sistema de paginação baseado em cursor para otimização de consultas:
 
@@ -341,56 +442,94 @@ A API utiliza um sistema de paginação baseado em cursor para otimização de c
 - **limit**: Define o número máximo de itens retornados
 - **nextCursor**: Presente na resposta para facilitar a paginação no cliente
 
-### Interceptores e Middleware
+### 🔒 Sistema de Recuperação de Senha
 
-O sistema implementa diversos interceptores para aspectos transversais:
+Fluxo completo de reset de senha:
 
-- **Search History**: Registra automaticamente buscas realizadas pelos usuários
-- **Error Handling**: Tratamento padronizado de erros
-- **Authentication**: Middleware para validação de tokens JWT
+- **Token Seguro**: Geração com crypto.randomBytes(32)
+- **Expiração**: Tokens válidos por 1 hora
+- **Email HTML**: Template profissional com logo
+- **Validação**: Verificação de token e expiração
+- **Limpeza**: Remoção automática de tokens após uso
 
-## Interceptor de Histórico
+---
 
-O interceptor registra automaticamente cada busca de faixas e artistas:
+### 📊 Monitoramento
 
-```typescript
-// src/searchHistory/search-history.interceptor.ts
-intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-  const req = context.switchToHttp().getRequest();
-  const url: string = req.originalUrl ?? '';
+Endpoints para health check:
 
-  const isSearch =
-    url.startsWith('/api/v1/tracks/search') ||
-    url.startsWith('/api/v1/artists/search');
+- `GET /`: Status da API
+- `GET /api/v1/docs`: Documentação Swagger
+- `GET /api/v1/redoc`: Documentação ReDoc alternativa
 
-  if (isSearch) {
-    let userId: number | undefined;
+### 🔄 Migrações do Banco
 
-    if (req.user?.userId) {
-      userId = req.user.userId;
-    } else {
-      // Extrai userId do token JWT se não estiver no request
-      const auth = (req.headers.authorization as string) ?? '';
-      if (auth.startsWith('Bearer ')) {
-        try {
-          const payload: any = this.jwt.verify(auth.slice(7), {
-            secret: this.config.get('JWT_SECRET') || 'changeme',
-          });
-          userId = payload.sub;
-        } catch {
-          // Token inválido, ignora
-        }
-      }
-    }
+```bash
+# Aplicar migrações em produção
+npx prisma migrate deploy
 
-    if (userId) {
-      const q = req.query?.query as string;
-      this.history.record(userId, q).catch(() => void 0);
-    }
-  }
+# Gerar Prisma Client
+npx prisma generate
 
-  return next.handle();
-}
+# Verificar status das migrações
+npx prisma migrate status
 ```
 
-Aplicado automaticamente em rotas de busca para usuários autenticados.
+---
+
+## 🐛 Troubleshooting
+
+### Problemas Comuns
+
+**Erro de conexão com Spotify:**
+- Verificar `SPOTIFY_CLIENT_ID` e `SPOTIFY_CLIENT_SECRET`
+- Verificar URLs da API do Spotify
+- Logs: buscar por `[Spotify]` nos logs
+
+**Problemas de email:**
+- Verificar configuração Gmail App Password
+- Verificar `MAIL_USERNAME` e `MAIL_PASSWORD`
+- Testar conectividade SMTP
+
+**Erro de upload de imagens:**
+- Verificar permissões da pasta `./uploads/`
+- Verificar `UPLOADS_PATH` configurado
+- Limites de tamanho de arquivo
+
+**Performance do banco:**
+- Verificar índices nas tabelas (definidos no Prisma)
+- Monitorar queries lentas
+- Considerar connection pooling
+
+---
+
+## 📖 Documentação Adicional
+
+### APIs Disponíveis
+
+- **Swagger UI**: `http://localhost:3000/api/v1/docs` (interativa)
+- **ReDoc**: `http://localhost:3000/api/v1/redoc` (alternativa)
+- **JSON Schema**: `http://localhost:3000/api/v1/swagger.json`
+
+### Estrutura do Banco de Dados
+
+O projeto usa Prisma ORM com as seguintes entidades principais:
+
+- **User**: Usuários com autenticação e perfis
+- **Track**: Faixas musicais (cache do Spotify)
+- **Artist**: Artistas (cache do Spotify)
+- **Review**: Avaliações de usuários (1-5 estrelas)
+- **Favorite**: Sistema de favoritos
+- **Playlist**: Playlists personalizadas
+- **SearchHistory**: Histórico de buscas
+- **Follow**: Sistema de seguir usuários/artistas
+
+### Integração com Frontend
+
+A API foi projetada para funcionar com aplicações frontend modernas:
+
+- **CORS habilitado** para desenvolvimento local
+- **Autenticação JWT** stateless
+- **Uploads via multipart/form-data**
+- **Responses padronizados** em JSON
+- **Error handling** consistente
