@@ -24,7 +24,8 @@ Este projeto foi desenvolvido e utilizado em duas disciplinas:
 **Instituição:** Universidade Federal de Alagoas (UFAL) - Campus Arapiraca
 
 ### 👨‍💻 Equipe
-- Caio Teixeira da Silva
+- Caio Teixeira da Silva(Backend)
+- Noemy Torres Pereira (Frontend) — [vorplay-ui](https://github.com/NoemyT/vorplay-ui)
 
 ---
 ## Sumário
@@ -246,35 +247,6 @@ npm run start:dev
 
 Servidor em `http://localhost:3000`.
 
-### 🧪 Executando Testes
-
-```bash
-# Executar todos os testes
-npm run test
-
-# Executar testes em modo watch
-npm run test:watch
-
-# Executar testes com coverage
-npm run test:cov
-
-# Executar testes e2e
-npm run test:e2e
-
-# Debug de testes
-npm run test:debug
-```
-
-### 📦 Build para Produção
-
-```bash
-# Gerar build
-npm run build
-
-# Executar versão de produção
-npm run start:prod
-```
-
 ---
 
 ## Documentação Swagger
@@ -447,29 +419,6 @@ Fluxo completo de reset de senha:
 - **Email HTML**: Template profissional com logo
 - **Validação**: Verificação de token e expiração
 - **Limpeza**: Remoção automática de tokens após uso
-
----
-
-### 📊 Monitoramento
-
-Endpoints para health check:
-
-- `GET /`: Status da API
-- `GET /api/v1/docs`: Documentação Swagger
-- `GET /api/v1/redoc`: Documentação ReDoc alternativa
-
-### 🔄 Migrações do Banco
-
-```bash
-# Aplicar migrações em produção
-npx prisma migrate deploy
-
-# Gerar Prisma Client
-npx prisma generate
-
-# Verificar status das migrações
-npx prisma migrate status
-```
 
 ---
 
