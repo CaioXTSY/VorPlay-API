@@ -27,28 +27,9 @@ Este projeto foi desenvolvido e utilizado em duas disciplinas:
 - Caio Teixeira da Silva(Backend)
 - Noemy Torres Pereira (Frontend) — [vorplay-ui](https://github.com/NoemyT/vorplay-ui)
 
----
-## Sumário
-
-- [📚 Informações Acadêmicas](#-informações-acadêmicas)
-- [🗄️ Diagrama do Banco de Dados](#-diagrama-do-banco-de-dados)
-- [🎯 Sobre](#-sobre)
-- [🔄 Princípios SOA Implementados](#-princípios-soa-implementados)
-- [🏗️ Padrões de Arquitetura Aplicados](#-padrões-de-arquitetura-aplicados)
-- [🏛️ Arquitetura do Sistema](#-arquitetura-do-sistema)
-- [🛠️ Tecnologias e Bibliotecas](#-tecnologias-e-bibliotecas)
-- [⚙️ Instalação](#instalação)
-- [🚀 Rodando em Dev](#rodando-em-dev)
-- [📋 Documentação Swagger](#documentação-swagger)
-- [🌐 Endpoints](#endpoints)
-- [🔍 Outros Recursos](#-outros-recursos)
-- [📖 Documentação Adicional](#-documentação-adicional)
-
----
-
 ## 🎯 Sobre
 
-O VorPlay API é um sistema orientado a serviços que:
+O VorPlay API é uma apliação orientada a serviços que:
 
 - Integra-se com APIs externas (Spotify) para obtenção de dados musicais
 - Oferece gerenciamento completo de usuários, playlists e interações sociais
